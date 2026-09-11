@@ -1,7 +1,7 @@
-import {stageError} from './intake-validation.js?v=211e0c0346df';
-import {solveLayout,scaleOf} from './layout.js?v=211e0c0346df';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=211e0c0346df';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=211e0c0346df';
+import {stageError} from './intake-validation.js?v=d62c55412730';
+import {solveLayout,scaleOf} from './layout.js?v=d62c55412730';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=d62c55412730';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=d62c55412730';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定',balance:'整体协调'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
