@@ -1,5 +1,5 @@
 // Deterministic line-plan segmentation, no semantic model or remote request.
-import {polygonBounds,validPolygon} from './geometry.js?v=d62c55412730';
+import {polygonBounds,validPolygon} from './geometry.js?v=c8579f40cafb';
 export const RECOGNITION_VERSION='line-regions-1';
 export function detectRegions({data,width:w,height:h},{threshold=165,gap=20,minArea=.012}={}){
  if(w*h>1000000||w<16||h<16)throw Error('识图输入尺寸不适用');
@@ -27,7 +27,8 @@ export function detectRegions({data,width:w,height:h},{threshold=165,gap=20,minA
  const points=best.filter((b,i)=>{const a=best[(i+best.length-1)%best.length],c=best[(i+1)%best.length];return Math.abs((b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x))>1e-10;});
  if(points.length<=60&&validPolygon(points))candidates.push({name:`待确认空间 ${candidates.length+1}`,type:'other',...polygonBounds(points),points,origin:RECOGNITION_VERSION,reviewed:false});
  }
- return {version:RECOGNITION_VERSION,candidates,parameters:{threshold,gap},note:candidates.length?'仅为封闭线段区域候选：可能合并相通房间或误认家具，逐个核对后采用。':'未找到可靠的封闭区域。可调整断线连接长度，或手动勾线。彩色效果图、斜拍和复杂家具图暂不适用。'};
+ const lines=(axis)=>{const size=axis==='x'?w:h,span=axis==='x'?h:w,found=[];for(let a=0;a<size;a++){let count=0;for(let b=0;b<span;b++)count+=wall[axis==='x'?b*w+a:a*w+b];if(count>span*.18)found.push(a);}const groups=[];for(const a of found){const last=groups.at(-1);if(last&&a-last.at(-1)<=2)last.push(a);else groups.push([a]);}return groups.map(g=>g.reduce((a,b)=>a+b,0)/g.length/size);};
+ return {version:RECOGNITION_VERSION,candidates,walls:{x:lines('x'),y:lines('y')},parameters:{threshold,gap},note:candidates.length?'仅为封闭线段区域候选：可能合并相通房间或误认家具，逐个核对后采用。':'未找到可靠的封闭区域。可调整断线连接长度，或手动勾线。彩色效果图、斜拍和复杂家具图暂不适用。'};
 }
 export async function recognizeImage(src,options={}){
  const img=new Image();img.src=src;await img.decode();const scale=Math.min(1,480/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,c.width,c.height);return detectRegions(ctx.getImageData(0,0,c.width,c.height),options);

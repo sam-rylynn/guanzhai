@@ -1,14 +1,14 @@
-import {stageError} from './intake-validation.js?v=d62c55412730';
-import {solveLayout,scaleOf} from './layout.js?v=d62c55412730';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=d62c55412730';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=d62c55412730';
+import {stageError} from './intake-validation.js?v=c8579f40cafb';
+import {solveLayout,scaleOf} from './layout.js?v=c8579f40cafb';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=c8579f40cafb';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=c8579f40cafb';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定',balance:'整体协调'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
 export const TIERS = {
  large:{name:'大改',sub:'硬装与功能区重新规划',text:'毛坯 / 精装：可讨论砸墙、封拆窗、改管道与重新规划功能区；施工前核实结构条件。',hard:true,zones:true},
- medium:{name:'中改',sub:'保留硬装与功能区用途',text:'精装 / 租房：不砸墙、不封拆窗、不改管道、不随意更换功能区，只调整家具软装。',hard:false,zones:false},
- small:{name:'微调',sub:'硬装不动，功能区可重排',text:'精装 / 租房：不动任何硬装，允许在现有条件内重新规划功能区及家具软装。',hard:false,zones:true}
+ medium:{name:'中改',sub:'保留硬装与功能区用途',text:'毛坯 / 精装 / 租房：不砸墙、不封拆窗、不改管道、不随意更换功能区，只调整家具软装。',hard:false,zones:false},
+ small:{name:'小改',sub:'硬装不动，功能区可重排',text:'毛坯 / 精装 / 租房：不动任何硬装，允许在现有条件内重新规划功能区及家具软装。',hard:false,zones:true}
 };
 export function markerFacts(f,markers=f.markers){return markers.map(m=>({...classifyMarker(m),id:m.id,type:m.type,direction:direction(m.x,m.y,f.north,f.bounds,f.width/f.height)}));}
 export function syncAttributes(h){for(const f of h.floors)f.markerAttributes=markerFacts(f);h.catalogVersion=CATALOG_VERSION;return h;}
@@ -42,7 +42,6 @@ export function validate(h) {
   const e=[];
   if(h.flowVersion===4)for(let s=1;s<=10;s++){const error=stageError(h,s);if(error)e.push(error);}
   if(h.schemaVersion===2&&!['shell','furnished'].includes(h.finish))e.push('请选择毛坯或精装。');
-  if(h.finish==='shell'&&h.tier!=='large')e.push('毛坯请选择大改，完成硬装规划。');
   if(!TIERS[h.tier])e.push('请选择可接受的方案状态。');
   if(!h.name.trim())e.push('请为这套住宅起一个名称。');
   if(!h.floors.length)e.push('请先上传户型图。');

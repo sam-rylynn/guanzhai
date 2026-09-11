@@ -1,4 +1,4 @@
-import {validPolygon,insideRoom} from './geometry.js?v=d62c55412730';
+import {validPolygon,insideRoom} from './geometry.js?v=c8579f40cafb';
 export const rectangle=r=>r.points||[{x:r.x,y:r.y},{x:r.x+r.w,y:r.y},{x:r.x+r.w,y:r.y+r.h},{x:r.x,y:r.y+r.h}];
 // Split every inner edge at each outer-edge intersection. Checking each interval
 // catches a region spanning a concave cutout even when all its corners are inside.
@@ -6,7 +6,7 @@ export function regionWithin(r,points){if(!validPolygon(points||[]))return false
 export function dimensionValid(v){return v==='未知'||Number.isFinite(Number(v))&&Number(v)>0&&Number(v)<=200;}
 export function stageError(h,s){const f=h.floors;
  if(s===1&&!(Number(h.budget)>=0&&String(h.budget).trim()))return '请填写可接受的预算，0 元也可以。';
- if(s===2&&(!h.finish||!h.tier||h.finish==='shell'&&h.tier!=='large'))return '请确认装修状态与改造范围。';
+ if(s===2&&(!h.finish||!h.tier))return '请确认装修状态与改造范围。';
  if(s===3&&(!h.housingCity?.trim()||!h.district?.trim()||!h.community?.trim()||!(Number(h.area)>0)||!String(h.bedrooms??'').trim()||!String(h.livingrooms??'').trim()))return '请补齐城市、区域、小区（自建房可填地名）、面积和几房几厅。';
  if(s===4&&!f.length)return '请上传户型图。';
  if(s===5&&f.some(x=>!validPolygon(x.boundary||[])))return '每层都需要沿封闭外墙勾画红线并闭合。';

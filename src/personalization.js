@@ -1,15 +1,10 @@
-import {renderReading} from './report-copy.js?v=d62c55412730';
-import {enrichItem} from './consultation.js?v=d62c55412730';
-import {polygonArea,insideRoom} from './geometry.js?v=d62c55412730';
-import {analyse,GOALS,palette} from './core.js?v=d62c55412730';
-export function colorReference(h,b){
- if(['木','火','土','金','水'].includes(h.favorable)&&h.favorableSource?.trim())return {element:h.favorable,label:'已知喜用 · 用户提供',basis:h.favorableSource,style:palette(h.favorable)};
- const strength=b?.fiveElements?.dayMasterStrength?.label,el=b?.dayMaster?.element,cycle=['木','火','土','金','水'],i=cycle.indexOf(el);
- if(i>=0&&!b.unknown&&b.solar?.lonSource?.startsWith('city:')&&!(b.boundaries?.length)&&['偏强','偏弱'].includes(strength)){
-  const element=cycle[(i+(strength==='偏弱'?4:1))%5];return {element,label:'扶抑配色参考 · 不是喜用神定论',basis:`程序简化强弱指标为${strength}，${strength==='偏弱'?'取生扶日主的印星元素':'取日主所生的食伤元素'}作审美候选。未纳入完整格局、调候、从格与合化，不据此判定住宅吉凶。`,style:palette(element)};
- }
- return {element:null,label:'喜用待确认 · 中性配色',basis:'缺少已核对喜用，或完整强弱条件不足。先依据采光、现有材质与个人偏好选择。',style:palette(null)};
-}
+import {renderReport} from './report-v07.js?v=c8579f40cafb';
+import {favorableReference} from './favorable.js?v=c8579f40cafb';
+import {enrichItem} from './consultation.js?v=c8579f40cafb';
+import {polygonArea,insideRoom} from './geometry.js?v=c8579f40cafb';
+import {analyse,GOALS,palette} from './core.js?v=c8579f40cafb';
+export function colorReference(h,b){const f=favorableReference(b);return {...f,label:f.method||f.status,basis:f.reason,style:palette(f.element)};}
+
 const rules=[
  {match:'工作与生活',tags:['work','study'],action:'在现有可用区域保留固定桌面，用可移动矮柜或地毯划出办公边界；先清理桌旁通道。',impact:'日常工作与休息缺少明确切换位置，可能增加干扰；需要结合实际居住习惯核实。'},
  {match:'入户与卧室',tags:['rest','family'],action:'站在入户位置复核是否直视床位。若确有直视，先调整床位或采用可移动遮挡，并保留门扇开启和通行。',impact:'若实地确认直视，卧室隐私与安定感可能受影响；图上距离本身不能证明直冲。'},
@@ -27,5 +22,5 @@ export function improvementItems(h){const data=analyse({...h,goals:Object.keys(G
 }
 export function selectedGoals(goals){if(!Array.isArray(goals)||!goals.length||goals.length>3||goals.some(x=>!GOALS[x])||new Set(goals).size!==goals.length)throw Error('请选择 1–3 项不同的改善方向。');return [...goals];}
 export function improvementPlan(h,goals){selectedGoals(goals);return improvementItems(h).map(x=>({...x,boosted:x.tags.some(g=>goals.includes(g)),emphasis:x.tags.some(g=>goals.includes(g))?`加强：围绕${x.tags.filter(g=>goals.includes(g)).map(g=>GOALS[g]).join('、')}，优先处理这一项；调整后连续记录一周使用感受，再决定是否添置。`:'基础改善：仍纳入清单，按现场核实结果推进。'})).sort((a,b)=>a.rank-b.rank||Number(b.boosted)-Number(a.boosted));}
-export function personalizedReport(h,b){const items=improvementItems(h),color=colorReference(h,b),selected=h.improvementGoals||[],saved=h.improvementResult?.revision===h.revision?h.improvementResult:null;return renderReading(h,b,items,color,selected,saved);}
+export function personalizedReport(h,b){const items=improvementItems(h),color=colorReference(h,b),selected=h.improvementGoals||[],saved=h.improvementResult?.revision===h.revision?h.improvementResult:null;return renderReport(h,b,items,selected,saved);}
 export const recommend=()=>`<aside class="product-recommend"><div><h3>观宅看空间，知星看自己</h3><p>到知星继续探索个人发展解读。两个产品独立保存资料，跳转不携带出生或户型信息。</p></div><a class="btn outline" href="https://zhixng.cn/app.html?from=guanzhai" target="_blank" rel="noopener noreferrer">去知星排盘与解读 ↗</a></aside>`;
