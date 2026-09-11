@@ -1,6 +1,7 @@
-import {solveLayout,scaleOf} from './layout.js?v=db762a45d174';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=db762a45d174';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=db762a45d174';
+import {stageError} from './intake-validation.js?v=adba9454658a';
+import {solveLayout,scaleOf} from './layout.js?v=adba9454658a';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=adba9454658a';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=adba9454658a';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定',balance:'整体协调'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
@@ -39,6 +40,7 @@ export function validBirth(birth,today=new Date()) {
 }
 export function validate(h) {
   const e=[];
+  if(h.flowVersion===4)for(let s=1;s<=10;s++){const error=stageError(h,s);if(error)e.push(error);}
   if(h.schemaVersion===2&&!['shell','furnished'].includes(h.finish))e.push('请选择毛坯或精装。');
   if(h.finish==='shell'&&h.tier!=='large')e.push('毛坯请选择大改，完成硬装规划。');
   if(!TIERS[h.tier])e.push('请选择可接受的方案状态。');

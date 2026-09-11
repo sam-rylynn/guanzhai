@@ -1,7 +1,7 @@
-import {direction} from './core.js?v=db762a45d174';
-import {insideRoom,roomAnchor,polygonArea} from './geometry.js?v=db762a45d174';
-import {CATALOG,classifyMarker} from './catalog.js?v=db762a45d174';
-import {scaleOf,rectOf,contained,overlaps} from './layout.js?v=db762a45d174';
+import {direction} from './core.js?v=adba9454658a';
+import {insideRoom,roomAnchor,polygonArea} from './geometry.js?v=adba9454658a';
+import {CATALOG,classifyMarker} from './catalog.js?v=adba9454658a';
+import {scaleOf,rectOf,contained,overlaps} from './layout.js?v=adba9454658a';
 export const RULE_VERSION='guanzhai-rules-2026-09-11.1';
 const DIR=['北','东北','东','东南','南','西南','西','西北'],GUA=['坎','艮','震','巽','离','坤','兑','乾'];
 const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'};
@@ -23,15 +23,15 @@ export function deepReview(h,b=null){const chapters=[];
  for(const r of f.rooms){const ms=f.markers.filter(m=>insideRoom(m,r)),dir=orient(roomAnchor(r),f),rLoc={...loc,roomId:r.id};
  const focus=ms.filter(m=>['bed','desk','sofa'].includes(m.type));
  if(focus.length){const doors=f.markers.filter(m=>m.type==='door');const aligned=focus.filter(m=>doors.some(d=>Math.abs(d.x-m.x)<.045||Math.abs(d.y-m.y)<.045));card('shape',`${r.name} · 门、主要家具与视线`,`${dir}侧；已标注${focus.map(m=>CATALOG[m.type].name).join('、')}，${aligned.length} 件与某个门位接近同一直线。`,aligned.length?'“直冲”要同时核对门洞朝向、可见路径和中间遮挡。图上的轴线接近只是一项复核线索，墙体阻隔会改变结论。':'目前未出现该轴线提示；门洞遗漏、家具朝向及实际遮挡仍可能改变观察。','站在门口复核视线。若直接暴露床位或工作区，可优先旋转或移动家具；中改保持房间用途，微调可讨论功能用途调整，但都保留硬装。','不把二维轴线相近直接解释为财务、健康或关系后果。',rLoc);}
- if(['bedroom','study'].includes(r.type)){const windows=ms.filter(m=>m.type==='window');card('shape',`${r.name} · 静区与使用节奏`,`${r.type==='bedroom'?'休息':'专注'}用途；区域内标注 ${windows.length} 处窗。`,r.type==='bedroom'?'形峦观察在这里关注静区是否有明确边界，以及休息行为是否被穿行打断。图中有窗不等于实际安静或采光充分。':'专注区要同时容纳桌椅使用、离座活动和收纳。只有书桌标识而没有椅后活动范围，无法判断空间是否够用。',r.type==='bedroom'?'先保留床边可用空间，再把高频取物的位置放在不穿过床位的路径上；遮光与灯位结合自己的作息调整。':'把椅子拉出后的范围作为家具外形一并录入尺寸检查；把经常使用的物品放在可达范围内。','噪声、照度和通风不从户型图片推断。',rLoc);}
+ if(['bedroom','study'].includes(r.type)){const windows=ms.filter(m=>m.type==='window');card('shape',`${r.name} · 静区与使用节奏`,`${r.type==='bedroom'?'休息':'专注'}用途；区域内标注 ${windows.length} 处窗。`,r.type==='bedroom'?'形峦观察在这里关注静区是否有明确边界，以及休息行为是否被穿行打断。图中有窗不等于实际安静或采光充分。':'专注区要同时容纳桌椅使用、离座活动和收纳。只有书桌标识而没有椅后活动范围，无法判断空间是否够用。',r.type==='bedroom'?'先保留床边可用空间，再把高频取物的位置放在不穿过床位的路径上；遮光与灯位结合自己的作息调整。':'现场核对椅子拉出后的活动范围，把经常使用的物品放在可达范围内；本流程不要求录入家具尺寸。','噪声、照度和通风不从户型图片推断。',rLoc);}
  if(['kitchen','bath'].includes(r.type))card('shape',`${r.name} · 水火设施与固定条件`,`${dir}侧；${ms.filter(m=>CATALOG[m.type]?.fixed).length} 处已标固定设施。`,'厨卫的优先约束来自排水、燃气或电路、排风与防水。传统水火取象可以单列阅读，不能替代这些实际条件。','中改、微调均保留管道及厨卫硬装；先检查水槽、灶具、柜门的使用空间。大改也需要在专业核验后讨论迁移。','未标出的管道和设备不当作不存在。',rLoc);
  }
  const rows=DIR.map(d=>{const ms=f.markers.filter(m=>orient(m,f)===d);const nature=ms.map(m=>({...classifyMarker(m),name:CATALOG[m.type]?.name}));return {direction:d,sand:nature.filter(m=>m.nature==='sand').map(m=>m.name),water:nature.filter(m=>m.nature==='water').map(m=>m.name),pending:nature.filter(m=>!['sand','water'].includes(m.nature)).map(m=>m.name),reference:['北','西南','东','东南'].includes(d)?'砂':'水'};});
  card('sand',`${f.name} · 八方砂水对照`,'按已确认的北向与房屋范围中心定位家具；属性来自版本化候选目录。','下表将所选砂水体系的方位偏好与家具候选属性并列，用于检查分布。室内家具与室外山水的尺度不同，不能直接照搬祸福断语。','先核实物件实际体量、用途、是否有真实水体，再决定是否需要调整；不因为某方偏水就建议加鱼缸。','复合或待核实物件不强制归砂、水。未标物件不计入。',{...loc,rows});
  if(f.facingConfirmed&&Number.isFinite(f.facing)){const sit=(f.facing+180)%360,idx=Math.round(sit/45)%8,base=GUA[idx],map=eightMap(base),boundary=Math.abs((sit+22.5)%45-22.5);if(boundary>20)card('eight',`${f.name} · 坐向接近宅卦分界`, `面向 ${f.facing}°，坐山 ${sit}°。`,'测向的小幅偏差可能改变宅卦。','在远离金属干扰的位置复测。','暂不输出游年宫位表。',loc);else card('eight',`${f.name} · ${base}宅游年辅助层`,`采用坐山定宅卦：面向 ${f.facing}°，坐山 ${sit}°；坐${DIR[idx]}向${DIR[(idx+4)%8]}。`,'按游年歌将传统星名列入八方。生气、天医、延年、伏位等是本体系的分类术语，不等于实际结果预测，也不把宅卦当成户主命卦。','先看现有主要房间落在哪些方位；若与其他规则提示不同，保留分层解释，家具尺寸和使用条件优先。','本版采用坐山定宅卦口径；门向定宅的其他口径不混算。',{...loc,rows:DIR.map(d=>({direction:d,star:map[d]}))});}
- else card('eight',`${f.name} · 八宅定向待补充`,'已确认图上北向，尚未确认住宅实际面向。','图上北向与住宅坐向是两种数据。入户门位置也不自动等于建筑面向。','在资料补充中填写实际面向角度并确认定向依据。','不凭四向或八方标签猜宅卦。',loc);
+ else card('eight',`${f.name} · 八宅定向待补充`,'已确认图上北向，尚未确认住宅实际面向。','图上北向与住宅坐向是两种数据。入户门位置也不自动等于建筑面向。','另行实测住宅面向角度并核对定向依据；本轮八方标签不替代精确坐向。','不凭四向或八方标签猜宅卦。',loc);
  const s=scaleOf(f);let collisions=0,outside=0;const ms=f.markers.filter(m=>rectOf(m,f));for(let i=0;i<ms.length;i++){const a=rectOf(ms[i],f);if(!['door','window'].includes(ms[i].type)&&!f.rooms.some(r=>contained(a,r)))outside++;for(let j=i+1;j<ms.length;j++)if(overlaps(a,rectOf(ms[j],f)))collisions++;}
- card('geometry',`${f.name} · 尺度与现状核对`,s?`已标定比例；${ms.length}/${f.markers.length} 件物件有实测外形，${collisions} 对外形或保留区重叠，${outside} 件未完全落在某个房间。`:'尚未标定图上距离与实际长度。',s?'重叠项包括门窗活动保留区。它们是二维模型提示，要回图核对；不把模型冲突当作房屋结构缺陷。':'总面积无法唯一确定图纸比例，不能据此推算床或沙发是否能放下。','进入图面资料标定长度、录入家具尺寸，并确认净空和开启保留区，再运行尺寸布局。','尺寸检查不含承重、层高、插座和完整跨房间动线。',loc);
+ card('geometry',`${f.name} · 尺度与现状核对`,s?`已标定比例；${ms.length}/${f.markers.length} 件物件有实测外形，${collisions} 对外形或保留区重叠，${outside} 件未完全落在某个房间。`:'尚未标定图上距离与实际长度。',s?'重叠项包括门窗活动保留区。它们是二维模型提示，要回图核对；不把模型冲突当作房屋结构缺陷。':'总面积无法唯一确定图纸比例，不能据此推算床或沙发是否能放下。','将已填写的单边尺寸与现场量尺核对；本流程不收集家具尺寸，摆放方案保留为概念候选，实际落位前核对净空与门窗开启范围。','尺寸检查不含承重、层高、插座和完整跨房间动线。',loc);
  }
  if(b){const counts=b.fiveElements?.counts||{},total=Object.values(counts).reduce((a,v)=>a+v,0),strength=b.fiveElements?.dayMasterStrength;card('person','户主八字 · 从四柱事实到住宅参考',`日主${b.dayMaster.stem}${b.dayMaster.element}；${b.unknown?'三柱':'四柱'}五行加权：${Object.entries(counts).map(([k,v])=>`${k} ${v}`).join('、')}。`,'五行数量描述的是排盘构成，不是“缺什么补什么”的处方。月令、通根与天干关系需要同时看；当前沿用知星的简化强弱模型，不能据一个数量或标签确定喜用神。',strength?`本轮模型为${strength.label}，依据：${strength.basis.join('；')}。空间建议保留为可试摆、可撤回的文化参考。`:'先核实出生资料，再加入个体参考。','出生时间不详或位于分界附近时，人宅解释应降低确定性。',{counts,total,model:strength?.model});
  const explanation={同气:'与日主同类，适合用来讨论一致性与边界；同类过多也不能自动视为更好。',生我:'方位五行生助日主，可作为承托的文化意象；不据此保证恢复、健康或好运。',我生:'日主生方位五行，可作为表达、输出的意象；长期使用仍应考虑精力与作息。',我克:'日主克方位五行，可作为管理、安排的意象；不能将其直接称为财位。',克我:'方位五行克日主，可作为规则与约束的意象；这不是该房间不适合居住的证明。'};
