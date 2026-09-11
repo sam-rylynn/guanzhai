@@ -1,0 +1,24 @@
+import {TIERS,ROOMS} from './core.js?v=211e0c0346df';
+import {polygonArea,insideRoom} from './geometry.js?v=211e0c0346df';
+const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const CONSULTATION_VERSION='2026-09-11.1';
+const GUIDES={
+ focus:{reason:'标注中没有独立书房，只能说明专注用途尚未明确；不等于住宅缺少事业方位。先确认户主是否在家长期办公，再判断是否需要专用区域。',unless:'如果主要在外办公，或已有未标出的固定桌面，本项应降为可选，不为凑出书房牺牲休息或通行。',check:'同一桌面能否持续使用而不反复收拾；坐下、起身、取物是否方便；其他成员经过时是否频繁打断。',medium:'保留原房间用途，在现有房间内整理固定桌面与可移动收纳。',small:'可在现有空间内重排办公与休闲用途；先试用，再决定是否更换软装。',large:'先用家具试出所需专注面积；确有长期需求时再讨论隔断，门窗和结构条件需另行核验。'},
+ sight:{reason:'门与主要家具在二维图上接近轴线，或入户与卧室较近，是视线复核线索。墙体、门洞朝向和家具朝向会改变实际可见路径，不能由中心距离直接判“冲”。',unless:'若有完整墙体阻隔，或开门不能看到床位／工作位置，则这条视线问题不成立；无需为它新增遮挡。',check:'从实际入户和常用门位观察：敏感区域不直接暴露，门可完整开启，新增物件没有阻断常走路径。',medium:'保留功能区，优先比较未锁定家具的朝向与原区域内位置；确认必要后才试移动遮挡。',small:'保持硬装不动，可把休息或办公用途安排到更少暴露的位置；保留厨卫和锁定项。',large:'先核实视线再讨论门洞或隔断，不能把本图提示直接转成拆改线。'},
+ concave:{reason:'闭合区域与其外接矩形并不相同。内凹改变连续可用地面，因此先影响家具尺度与转角动线；外接框里的空白不代表缺了哪位家庭成员的运势。',unless:'如果凹槽本来是设备井、柱位或不属于室内，不应纳入可布置面积；若边界画错，应重画后再分析。',check:'收纳不超出实际墙线，转角能正常经过，柜门开启与周边家具不互相干涉。',medium:'保留用途，把已有小件收纳与实际凹槽匹配；尺寸未知时先留空。',small:'可在凹槽附近重分收纳与活动用途，但不能把红线外空间当作新功能区。',large:'先辨明凹槽对应的结构和设备，再由专业人员判断是否有改造余地；本方案不指定拆除。'},
+ dimensions:{reason:'单边长度、房间自填尺寸与家具可放置性是不同证据。未建立可靠图纸比例、未核对家具实际外形，不能输出厘米级落位与通过性结论。',unless:'即便平台展示同小区户型，也要核对楼栋、户型朝向和改造情况；平台参考不等于当前住宅的实测尺寸。',check:'拟移动区域、家具最大外形、门窗完整开启范围都有实测记录；确认无冲突后才采购或移动。'},
+ entry:{reason:'入口是理解进入顺序与空间联系的必要资料。没有门位时，不能判断入户视线、门对门或主要出入路径，也不应该默认入口在图纸下方。',unless:'若已标其他门但未分清入户门，须先明确入口角色；所有门一律视作入口会扩大误判。',check:'图中标记与真实门位一一对应，记录哪一个是主要入口，并从该入口逐区核对。'},
+ window:{reason:'窗位只是开口位置，不包含玻璃面积、窗外遮挡、朝向日照与真实噪声。采光与安静不能从“有窗”直接推出。',unless:'如果窗位只是底图上的符号而未确认，或窗已被封闭，应先更正标注再讨论窗帘和灯位。',check:'在实际工作、休息时段分别观察光线与干扰，再确定遮光、纱帘及照明组合。'},
+ outside:{reason:'本轮只有平面图及用户标注，没有楼外道路、地势、建筑遮挡等现场证据。形峦的宅外部分只能列为待查，不能依据小区名称推定山水格局。',unless:'外部条件未核实，不建议添置声称能处理路冲、反弓或其他外部形势的摆件。',check:'实地确认主要开口面对的环境、遮挡和日常干扰，记录时间与观察位置；再决定是否需要进一步勘查。'}
+};
+function key(x){if(x.id.endsWith('-concave'))return 'concave';if(x.id.endsWith('-sight')||x.title.includes('入户与卧室'))return 'sight';if(x.title.includes('工作与生活'))return 'focus';if(x.title.includes('尺度'))return 'dimensions';if(x.title.includes('入户关系'))return 'entry';if(x.title.includes('门窗关系'))return 'window';return 'outside';}
+export function enrichItem(h,x){const f=h.floors.find(f=>f.id===x.floorId),r=f?.rooms.find(r=>r.id===x.roomId),k=key(x),g=GUIDES[k];const locked=!!r?.locked||!!f?.markers.some(m=>m.locked&&(!r||insideRoom(m,r)));let evidence=x.text||x.source;
+ if(k==='concave'&&r?.points)evidence=`${f.name}的${r.name}使用 ${r.points.length} 个闭合顶点；区域面积为外接矩形约 ${Math.round(polygonArea(r.points)/(r.w*r.h)*100)}%。此比例用于识别几何内凹，不是古籍吉凶阈值。`;
+ if(k==='sight'&&r)evidence=`${f.name} · ${r.name}（${ROOMS[r.type]||'已标区域'}）；判断来自已标门与床、书桌或沙发的位置，未包含门洞与墙体可见性计算。`;
+ const action=locked?'所涉区域或物件存在锁定项，先保留原位。完成本条现场复核；若问题成立，仅讨论未锁定物件及软装，不能直接按建议移动锁定项。':g[h.tier]||x.action;
+ return {...x,caseKey:k,where:f?`${f.name}${r?' · '+r.name:''}`:'整个住宅',evidence,reason:g.reason,unless:g.unless,check:g.check,action,locked,tier:TIERS[h.tier].name,stage:x.kind==='unknown'?'先补证据':'先核实，再调整',rank:['dimensions','entry','window','outside'].includes(k)?0:1};
+}
+export function caseDetails(x,action=false){return `<dl class="case-reasoning"><div><dt>判断依据</dt><dd>${e(x.evidence)}</dd></div><div><dt>为什么这样看</dt><dd>${e(x.reason)}</dd></div><div><dt>何时不成立</dt><dd>${e(x.unless)}</dd></div>${action?`<div><dt>${e(x.tier)} · 实施方法</dt><dd>${e(x.action)}</dd></div><div><dt>调整后怎么复核</dt><dd>${e(x.check)}</dd></div>`:''}</dl>`;}
+export function consultationOverview(h,items,b){const needs=items.filter(x=>x.kind==='attention'),unknown=items.filter(x=>x.kind==='unknown'),f=h.floors,rooms=f.flatMap(f=>f.rooms),bed=rooms.filter(r=>r.type==='bedroom').length,study=rooms.filter(r=>r.type==='study').length;const limited=items.some(x=>x.caseKey==='dimensions');
+ return `<section class="panel consultation-overview"><div class="eyebrow">勘宅总论 · 主次与取舍</div><h2>${needs.length?'先处理已出现的空间线索，再谈风格加强':'现有标注未触发明确调整线索，先把资料补齐'}</h2><p>本轮依据 ${f.length} 层户型、${rooms.length} 个功能区和 ${f.reduce((n,f)=>n+f.markers.length,0)} 个物件标记。${bed?`已有 ${bed} 个休息区域`:'尚未明确休息区域'}，${study?`有 ${study} 个独立专注区域`:'没有独立书房标注'}。这是一份基于用户图面的室内分析，尚未完成现场勘察。</p><p>${needs.length?`当前有 ${needs.length} 条需要留意的线索，先回到具体房间和可见路径验证；`:'当前没有触发的线索不等于没有问题；'}另有 ${unknown.length} 项条件待核实。${limited?'尺寸条件不足，所有位置建议保持概念层，不直接作为购置或施工依据。':''}</p><ol><li><b>先确定能不能改：</b>${e(TIERS[h.tier].name)}，${e(TIERS[h.tier].sub)}。${h.keep?`保留条件为“${e(h.keep)}”；`:'已锁定项维持原状；'}预算上限 ${e(h.budget)} 元，先复核与利用现有物品，未取得报价不承诺费用。</li><li><b>再确定值不值得改：</b>优先核对门位、可用范围和隐私／专注线索。若实地不成立，撤销对应改动，而不是继续添置物品。</li><li><b>最后处理个人取象：</b>${b?'八字、命卦和方位五行分别列明；有分歧时保留分歧。':'尚无出生资料，不给个人适配定论。'}喜用配色不能替代实际采光、使用空间或硬装限制。</li></ol><p class="hint">本报告把形态观察、八宅、砂水与个人五行分层呈现，不把不同体系相加成一个“吉凶分数”。规则版本 ${CONSULTATION_VERSION}；专业深度仍需通过案例与资深从业者复核，不能由系统自称执业年限。</p></section>`;
+}

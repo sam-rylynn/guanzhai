@@ -1,12 +1,12 @@
-import {ROOMS,TIERS,GOALS} from './core.js?v=adba9454658a';
-import {CATALOG} from './catalog.js?v=adba9454658a';
-import {validPolygon,insideRoom} from './geometry.js?v=adba9454658a';
+import {ROOMS,TIERS,GOALS} from './core.js?v=211e0c0346df';
+import {CATALOG} from './catalog.js?v=211e0c0346df';
+import {validPolygon,insideRoom} from './geometry.js?v=211e0c0346df';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const SCREENS=[['A','户主八字'],['A','预算与喜用'],['A','改造范围'],['B','住宅基本资料'],['B','上传户型图'],['B','勾画边界红线'],['B','填写最长尺寸'],['B','确认八个方位'],['C','分割功能区'],['D','标记软装位置'],['E','核对并生成']];
 const field=(name,body)=>`<label class="field"><span>${name}</span>${body}</label>`;
 const inp=(key,value,extra='')=>`<input data-field="${key}" value="${e(value)}" ${extra}>`;
 const opts=(map,val)=>Object.entries(map).map(([k,v])=>`<option value="${k}" ${String(val)===k?'selected':''}>${e(v)}</option>`).join('');
-export {stageError,dimensionValid,regionWithin} from './intake-validation.js?v=adba9454658a';
+export {stageError,dimensionValid,regionWithin} from './intake-validation.js?v=211e0c0346df';
 export function intake(h,s,fi,{canvas,floorTabs,selection,tool,sketch}){const b=h.birth,f=h.floors[fi],r=f?.rooms.find(x=>x.id===selection);let body='';
  const drawing=extra=>`${floorTabs(h.floors,fi,true)}<div class="intake-drawing ${s===5?'boundary-mode':''}">${canvas(f,{editable:[5,8,9].includes(s),show:s>=8})}${extra||''}</div>`;
  const strokeTools=kind=>`<div class="compact-tools"><button data-tool="select">移动</button><button data-tool="${kind}">重新勾线</button><button data-action="undo-point" ${sketch.length?'':'disabled'}>撤回</button><button data-action="close-polygon" ${sketch.length>=3?'':'disabled'}>闭合</button></div>`;

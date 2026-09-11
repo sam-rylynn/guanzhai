@@ -1,4 +1,4 @@
-import {validPolygon,insideRoom} from './geometry.js?v=adba9454658a';
+import {validPolygon,insideRoom} from './geometry.js?v=211e0c0346df';
 export const rectangle=r=>r.points||[{x:r.x,y:r.y},{x:r.x+r.w,y:r.y},{x:r.x+r.w,y:r.y+r.h},{x:r.x,y:r.y+r.h}];
 // Split every inner edge at each outer-edge intersection. Checking each interval
 // catches a region spanning a concave cutout even when all its corners are inside.
