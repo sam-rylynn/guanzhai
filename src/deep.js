@@ -1,7 +1,7 @@
-import {direction} from './core.js';
-import {insideRoom,roomAnchor,polygonArea} from './geometry.js';
-import {CATALOG,classifyMarker} from './catalog.js';
-import {scaleOf,rectOf,contained,overlaps} from './layout.js';
+import {direction} from './core.js?v=db762a45d174';
+import {insideRoom,roomAnchor,polygonArea} from './geometry.js?v=db762a45d174';
+import {CATALOG,classifyMarker} from './catalog.js?v=db762a45d174';
+import {scaleOf,rectOf,contained,overlaps} from './layout.js?v=db762a45d174';
 export const RULE_VERSION='guanzhai-rules-2026-09-11.1';
 const DIR=['北','东北','东','东南','南','西南','西','西北'],GUA=['坎','艮','震','巽','离','坤','兑','乾'];
 const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'};
