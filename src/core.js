@@ -1,3 +1,4 @@
+import {solveLayout,scaleOf} from './layout.js';
 import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js';
 import {insideRoom, roomAnchor, validPolygon} from './geometry.js';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定',balance:'整体协调'};
@@ -59,7 +60,8 @@ export function computeBirth(birth,engine) {
   if(!birth.unknown){const [hh,mm]=birth.time.split(':').map(Number);Object.assign(input,{hh,mm});}
   const c=engine.computeChart(input);
   // Do not expose the inherited strength heuristic as a verified 喜用神 method.
-  return {pillars:c.pillars,dayMaster:c.dayMaster,solar:c.solar,boundaries:c.boundaries,unknown:birth.unknown,
+  const chartYear=c.pillars.year.stem===engine.STEMS[((y-4)%10+10)%10]&&c.pillars.year.branch===engine.BRANCHES[((y-4)%12+12)%12]?y:y-1;
+  return {pillars:c.pillars,dayMaster:c.dayMaster,solar:c.solar,boundaries:c.boundaries,unknown:birth.unknown,fiveElements:birth.unknown?{counts:c.fiveElements.counts}:c.fiveElements,tenGods:c.tenGods,chartYear,
     note:birth.unknown?'时辰不详：三柱仅为日期参考；节气交接日及晚子时附近可能存在差异。':'按北京时间录入，采用经度与均时差校正；23 点换日。'};
 }
 export function analyse(h) {
@@ -85,7 +87,7 @@ export function analyse(h) {
     if(f.markers.some(m=>m.type==='desk')&&h.goals.some(g=>['study','work'].includes(g)))add('good','可以从已有书桌开始优化','图中已标出书桌，可在原有家具基础上做位置推演，先确认走动和开门不受影响。','家具标注 × 你的目标',f,study||f.rooms.find(r=>r.type==='living'));
   }
   add('unknown','平面图之外的条件留待核实','楼外道路、山水、楼间遮挡、真实噪声和日照未被现场核实，不参与本次优劣比较。','分析范围');
-  if(!h.area)add('unknown','缺少尺度，方案先按概念位置表达','未填写面积，且标注区域不是实测尺寸。家具能否放置、通道是否足够仍需量尺。','尺寸条件');
+  if(h.floors.some(f=>!scaleOf(f)))add('unknown','缺少尺度，方案先按概念位置表达','至少一层尚未标定实际长度，当前标注区域不能换算成实测尺寸。家具能否放置、通道是否足够仍需量尺。','尺寸条件');
   if(!findings.some(f=>f.kind==='good'))add('good','已建立可追溯的户型资料',`已确认 ${h.floors.length} 层的四向及空间标注，后续调整可以回到同一张图上比较。`,'已确认资料');
   return {findings,rooms:h.floors.flatMap(f=>f.rooms).length,revision:h.revision,createdAt:new Date().toISOString()};
 }
@@ -93,6 +95,7 @@ const ELEMENT_STYLE={木:{colors:['#6c8169','#b6a789'],names:'苔绿与原木色
 export const palette=element=>ELEMENT_STYLE[element]||{colors:['#7d8973','#d2c4a7'],names:'鼠尾草绿与暖米色',material:'棉麻、木质',metaphor:'自然与平衡'};
 export function makePlan(h,tier=h.tier,birth=null) {
   if(!TIERS[tier])throw Error('未知改动档位');
+  const precise=h.layoutMode==='metric'; const geometry=precise?solveLayout(h):null;
   const report=analyse(h), actions=[],moves=[],partitions=[];
   const primary=h.goals[0],isFocus=['work','study'].includes(primary), isRest=primary==='rest';
   for(const f of h.floors){
@@ -116,10 +119,11 @@ export function makePlan(h,tier=h.tier,birth=null) {
       actions.push({title:'探索一处分区或隔断的可能',where,text:'允许讨论砸墙、封拆窗、改管道与功能区重排，但必须先核实承重、采光、通行及管线。虚线表示待讨论分区，不是拟拆墙或施工线；不规则区域先给文字讨论，不跨轮廓画线。',source:'大改范围 · 概念分区',kind:'partition'});
     }
   }
+  if(precise){moves.splice(0,moves.length,...geometry.moves);partitions.length=0;for(let i=actions.length-1;i>=0;i--)if(actions[i].kind==='move')actions.splice(i,1);for(const result of geometry.floors){actions.unshift({title:result.status==='checked'?`尺寸检验 · ${result.target}候选位置`:result.status==='missing'?'尺寸布局 · 资料待补齐':'尺寸布局 · 本轮未找到候选',where:h.floors.find(f=>f.id===result.floorId)?.name,text:result.status==='checked'?`移动 ${result.position.distance} 米；中心距图像左边 ${result.position.x} 米、上边 ${result.position.y} 米。四周留距 ${result.clearance} 米，已通过房间轮廓包含与已标物件碰撞检查。`:(result.missing||[]).join('；'),source:'实测标定 × 矩形外形 × 10 厘米搜索网格',kind:'geometry'});}}
   const style=palette(birth?.dayMaster?.element);
   actions.push({title:primary==='wealth'?'先盘点已有物品，再安排软装预算':'用一组软装建立空间的一致性',where:'可调整区域',text:`可以从已有的${style.material}中整理一组，选择${style.names}作局部点缀；保留你喜欢的物品，先试摆再决定是否添置。预算上限为 ${h.budget||'待定'} 元，不代表实际报价。`,source:birth?`日主·${birth.dayMaster.stem}${birth.dayMaster.element}的文化意象配色，不等同喜用神`:'用户目标 · 软装偏好',kind:'decor'});
   if(h.keep.trim())actions.push({title:'执行前核对你的保留清单',where:'整个住宅',text:h.keep,source:'用户保留条件 · 自由文字需逐项核对',kind:'constraint'});
-  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',actions,moves,partitions,style,floors:structuredClone(h.floors),note:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
+  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',layoutMode:precise?'metric':'concept',geometry,actions,moves,partitions,style,floors:structuredClone(h.floors),note:precise?geometry.scope:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
 }
 export function metrics(h){
   const f=analyse(h).findings;

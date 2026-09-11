@@ -1,0 +1,43 @@
+import {direction} from './core.js';
+import {insideRoom,roomAnchor,polygonArea} from './geometry.js';
+import {CATALOG,classifyMarker} from './catalog.js';
+import {scaleOf,rectOf,contained,overlaps} from './layout.js';
+export const RULE_VERSION='guanzhai-rules-2026-09-11.1';
+const DIR=['北','东北','东','东南','南','西南','西','西北'],GUA=['坎','艮','震','巽','离','坤','兑','乾'];
+const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'};
+const GEN={木:'火',火:'土',土:'金',金:'水',水:'木'},KE={木:'土',土:'水',水:'火',火:'金',金:'木'};
+const MOD9=n=>((n-1)%9+9)%9+1;
+export const SOURCE={time:{name:'《沈氏玄空学》卷四 · 洛书顺飞路径',url:'https://www.diancangwang.cn/xuanxuewushu/f6f37803664b/90b563d9cb41.html'},shape:{name:'宅内形态 · 图面几何规则',url:'https://ctext.org/wiki.pl?chapter=412426&if=gb'},eight:{name:'《阳宅大全》游年歌 · 八宅辅助层',url:'https://www.shidianguji.com/mid-page/7556734527243436078'},sand:{name:'陈益峰整理八卦砂水 · 家具映射为候选',url:'https://www.chinavalue.net/article/2015/8/12/1192349.html'},person:{name:'知星确定性排盘 × 五行生克',url:'https://sam-rylynn.github.io/special-giggle/app.html'}};
+export function orient(p,f){return direction(p.x,p.y,f.north,f.bounds,f.width/f.height);}
+const STAR={伏:'伏位',生:'生气',天:'天医',延:'延年',六:'六煞',祸:'祸害',五:'五鬼',绝:'绝命'};
+const SONG={乾:'六天五祸绝延生',坎:'五天生延绝祸六',艮:'六绝祸生延天五',震:'延生祸绝五天六',巽:'天五六祸生绝延',离:'六五绝延祸生天',坤:'天延绝生祸五六',兑:'生祸延绝六五天'};
+export function eightMap(base){const i=GUA.indexOf(base);if(i<0)return null;return Object.fromEntries([0,1,2,3,4,5,6,7].map(n=>[DIR[(i+n)%8],n?STAR[SONG[base][n-1]]:'伏位']));}
+export function lifeGua(year,sex){if(!Number.isInteger(year)||!['男','女'].includes(sex))return null;let n=MOD9(sex==='男'?11-MOD9(year):4+MOD9(year));if(n===5)n=sex==='男'?2:8;return {number:n,gua:({1:'坎',2:'坤',3:'震',4:'巽',6:'乾',7:'兑',8:'艮',9:'离'})[n],basis:'以立春划分出生年；五黄男寄坤、女寄艮。本命卦为八宅算法，独立于八字喜用神。'};}
+export function relation(person,space){if(person===space)return '同气';if(GEN[space]===person)return '生我';if(GEN[person]===space)return '我生';if(KE[person]===space)return '我克';return '克我';}
+export function annualStars(year){if(!Number.isInteger(year)||year<1901||year>2100)return null;const centre=MOD9(11-MOD9(year)),order=['中央','西北','西','东北','南','北','西南','东','东南'];return Object.fromEntries(order.map((d,i)=>[d,MOD9(centre+i)]));}
+export function deepReview(h,b=null){const chapters=[];
+ const card=(layer,title,evidence,meaning,action,limit,extra={})=>chapters.push({layer,title,evidence,meaning,action,limit,...extra});
+ for(const f of h.floors){const loc={floorId:f.id};
+ const areas=f.rooms.map(r=>{const frac=r.points?polygonArea(r.points):r.w*r.h;return {r,frac,compact:frac/(r.w*r.h)};});
+ const irregular=areas.filter(x=>x.compact<.85);card('shape',`${f.name} · 形态与空间完整性`,`${f.rooms.length} 个已确认空间；${irregular.length} 个轮廓存在明显内凹。`,irregular.length?`${irregular.map(x=>x.r.name).join('、')}并非完整矩形。内凹首先影响的是家具放置和连续可用空间，不能只凭外接框把空白判成某个家庭成员的“缺角”。`:'现有房间轮廓未出现明显内凹；这只说明已标注几何形态，不代表建筑无缺陷。',irregular.length?'沿实际墙内侧检查凹槽用途，先安排尺寸匹配的收纳，保留转角通行；不通过随意添镜或装饰补出不存在的建筑面积。':'核对门洞、柱体是否也包含在标注中，再谈家具组合。','采用标注区域面积与外接框面积比 0.85 作为提示阈值；这是产品几何规则，不是古籍定量公式。',loc);
+ for(const r of f.rooms){const ms=f.markers.filter(m=>insideRoom(m,r)),dir=orient(roomAnchor(r),f),rLoc={...loc,roomId:r.id};
+ const focus=ms.filter(m=>['bed','desk','sofa'].includes(m.type));
+ if(focus.length){const doors=f.markers.filter(m=>m.type==='door');const aligned=focus.filter(m=>doors.some(d=>Math.abs(d.x-m.x)<.045||Math.abs(d.y-m.y)<.045));card('shape',`${r.name} · 门、主要家具与视线`,`${dir}侧；已标注${focus.map(m=>CATALOG[m.type].name).join('、')}，${aligned.length} 件与某个门位接近同一直线。`,aligned.length?'“直冲”要同时核对门洞朝向、可见路径和中间遮挡。图上的轴线接近只是一项复核线索，墙体阻隔会改变结论。':'目前未出现该轴线提示；门洞遗漏、家具朝向及实际遮挡仍可能改变观察。','站在门口复核视线。若直接暴露床位或工作区，可优先旋转或移动家具；中改保持房间用途，微调可讨论功能用途调整，但都保留硬装。','不把二维轴线相近直接解释为财务、健康或关系后果。',rLoc);}
+ if(['bedroom','study'].includes(r.type)){const windows=ms.filter(m=>m.type==='window');card('shape',`${r.name} · 静区与使用节奏`,`${r.type==='bedroom'?'休息':'专注'}用途；区域内标注 ${windows.length} 处窗。`,r.type==='bedroom'?'形峦观察在这里关注静区是否有明确边界，以及休息行为是否被穿行打断。图中有窗不等于实际安静或采光充分。':'专注区要同时容纳桌椅使用、离座活动和收纳。只有书桌标识而没有椅后活动范围，无法判断空间是否够用。',r.type==='bedroom'?'先保留床边可用空间，再把高频取物的位置放在不穿过床位的路径上；遮光与灯位结合自己的作息调整。':'把椅子拉出后的范围作为家具外形一并录入尺寸检查；把经常使用的物品放在可达范围内。','噪声、照度和通风不从户型图片推断。',rLoc);}
+ if(['kitchen','bath'].includes(r.type))card('shape',`${r.name} · 水火设施与固定条件`,`${dir}侧；${ms.filter(m=>CATALOG[m.type]?.fixed).length} 处已标固定设施。`,'厨卫的优先约束来自排水、燃气或电路、排风与防水。传统水火取象可以单列阅读，不能替代这些实际条件。','中改、微调均保留管道及厨卫硬装；先检查水槽、灶具、柜门的使用空间。大改也需要在专业核验后讨论迁移。','未标出的管道和设备不当作不存在。',rLoc);
+ }
+ const rows=DIR.map(d=>{const ms=f.markers.filter(m=>orient(m,f)===d);const nature=ms.map(m=>({...classifyMarker(m),name:CATALOG[m.type]?.name}));return {direction:d,sand:nature.filter(m=>m.nature==='sand').map(m=>m.name),water:nature.filter(m=>m.nature==='water').map(m=>m.name),pending:nature.filter(m=>!['sand','water'].includes(m.nature)).map(m=>m.name),reference:['北','西南','东','东南'].includes(d)?'砂':'水'};});
+ card('sand',`${f.name} · 八方砂水对照`,'按已确认的北向与房屋范围中心定位家具；属性来自版本化候选目录。','下表将所选砂水体系的方位偏好与家具候选属性并列，用于检查分布。室内家具与室外山水的尺度不同，不能直接照搬祸福断语。','先核实物件实际体量、用途、是否有真实水体，再决定是否需要调整；不因为某方偏水就建议加鱼缸。','复合或待核实物件不强制归砂、水。未标物件不计入。',{...loc,rows});
+ if(f.facingConfirmed&&Number.isFinite(f.facing)){const sit=(f.facing+180)%360,idx=Math.round(sit/45)%8,base=GUA[idx],map=eightMap(base),boundary=Math.abs((sit+22.5)%45-22.5);if(boundary>20)card('eight',`${f.name} · 坐向接近宅卦分界`, `面向 ${f.facing}°，坐山 ${sit}°。`,'测向的小幅偏差可能改变宅卦。','在远离金属干扰的位置复测。','暂不输出游年宫位表。',loc);else card('eight',`${f.name} · ${base}宅游年辅助层`,`采用坐山定宅卦：面向 ${f.facing}°，坐山 ${sit}°；坐${DIR[idx]}向${DIR[(idx+4)%8]}。`,'按游年歌将传统星名列入八方。生气、天医、延年、伏位等是本体系的分类术语，不等于实际结果预测，也不把宅卦当成户主命卦。','先看现有主要房间落在哪些方位；若与其他规则提示不同，保留分层解释，家具尺寸和使用条件优先。','本版采用坐山定宅卦口径；门向定宅的其他口径不混算。',{...loc,rows:DIR.map(d=>({direction:d,star:map[d]}))});}
+ else card('eight',`${f.name} · 八宅定向待补充`,'已确认图上北向，尚未确认住宅实际面向。','图上北向与住宅坐向是两种数据。入户门位置也不自动等于建筑面向。','在资料补充中填写实际面向角度并确认定向依据。','不凭四向或八方标签猜宅卦。',loc);
+ const s=scaleOf(f);let collisions=0,outside=0;const ms=f.markers.filter(m=>rectOf(m,f));for(let i=0;i<ms.length;i++){const a=rectOf(ms[i],f);if(!['door','window'].includes(ms[i].type)&&!f.rooms.some(r=>contained(a,r)))outside++;for(let j=i+1;j<ms.length;j++)if(overlaps(a,rectOf(ms[j],f)))collisions++;}
+ card('geometry',`${f.name} · 尺度与现状核对`,s?`已标定比例；${ms.length}/${f.markers.length} 件物件有实测外形，${collisions} 对外形或保留区重叠，${outside} 件未完全落在某个房间。`:'尚未标定图上距离与实际长度。',s?'重叠项包括门窗活动保留区。它们是二维模型提示，要回图核对；不把模型冲突当作房屋结构缺陷。':'总面积无法唯一确定图纸比例，不能据此推算床或沙发是否能放下。','进入图面资料标定长度、录入家具尺寸，并确认净空和开启保留区，再运行尺寸布局。','尺寸检查不含承重、层高、插座和完整跨房间动线。',loc);
+ }
+ if(b){const counts=b.fiveElements?.counts||{},total=Object.values(counts).reduce((a,v)=>a+v,0),strength=b.fiveElements?.dayMasterStrength;card('person','户主八字 · 从四柱事实到住宅参考',`日主${b.dayMaster.stem}${b.dayMaster.element}；${b.unknown?'三柱':'四柱'}五行加权：${Object.entries(counts).map(([k,v])=>`${k} ${v}`).join('、')}。`,'五行数量描述的是排盘构成，不是“缺什么补什么”的处方。月令、通根与天干关系需要同时看；当前沿用知星的简化强弱模型，不能据一个数量或标签确定喜用神。',strength?`本轮模型为${strength.label}，依据：${strength.basis.join('；')}。空间建议保留为可试摆、可撤回的文化参考。`:'先核实出生资料，再加入个体参考。','出生时间不详或位于分界附近时，人宅解释应降低确定性。',{counts,total,model:strength?.model});
+ const explanation={同气:'与日主同类，适合用来讨论一致性与边界；同类过多也不能自动视为更好。',生我:'方位五行生助日主，可作为承托的文化意象；不据此保证恢复、健康或好运。',我生:'日主生方位五行，可作为表达、输出的意象；长期使用仍应考虑精力与作息。',我克:'日主克方位五行，可作为管理、安排的意象；不能将其直接称为财位。',克我:'方位五行克日主，可作为规则与约束的意象；这不是该房间不适合居住的证明。'};
+ const personalRows=h.floors.flatMap(f=>f.rooms.filter(r=>['bedroom','study','living'].includes(r.type)).map(r=>{const d=orient(roomAnchor(r),f),e=ELEMENT[d],rel=e?relation(b.dayMaster.element,e):null;return {direction:`${f.name} ${r.name} · ${d}`,star:e?`${e} · ${rel}`:'中央 · 不作八方对应',detail:rel?explanation[rel]:'保留房屋中心的实际使用观察。'};}));card('person','人宅适配 · 逐房间对照','以日主五行与房间所在后天八卦方位五行比较；房间用途与居住目标单独保留。','本层给出五行关系及其解释，帮助比较同一户主在不同房间的文化取象；不计算“适配百分比”。','优先选能满足实际休息或专注条件的房间；文化偏好用于条件相近的方案之间取舍，不推翻尺寸和保留约束。','方位五行关系不等同喜用神；八宅命卦另算。',{rows:personalRows});
+ const gua=lifeGua(b.chartYear,h.birth.sex);if(gua)card('person',`八宅命卦 · ${gua.gua}命`,`${b.chartYear} 立春年；${h.birth.sex}命口径；命卦数 ${gua.number}。`,gua.basis,'将命卦表与住宅游年表分别阅读。出现不同指向时保留分歧，不以此否决已经满足使用条件的房间。','本命卦不是四柱五行判断，未知计算口径时不生成。',{rows:DIR.map(d=>({direction:d,star:eightMap(gua.gua)[d]}))});
+ }else card('person','人宅适配 · 尚未启用','没有经同意的户主出生资料。','住宅本身的几何与使用分析照常进行。','在居住需求中启用八字参考，系统会在本机复用知星排盘内核。','不向知星发送户型或出生资料。');
+ const year=Number(h.assessmentYear)||new Date().getFullYear(),stars=annualStars(year);card('time',`${year} 年 · 九宫年星参考`,'所选年份以当年立春至次年立春为适用区间；中宫按三元年星公式计算，依洛书轨迹顺飞。','此表只显示流年九宫数的文化历法层。它不是住宅山星、向星盘，不能据此解释某一房间的旺衰。','如需完整宅盘，仍须核实建造、启用、改造史、精确坐向和采用的起运口径。','本版尚未实现完整玄空宅盘；不自动给出灾病或财运断语。',{rows:stars?Object.entries(stars).map(([direction,star])=>({direction,star:String(star)})):[]});
+ return {version:RULE_VERSION,chapters};
+}
