@@ -1,7 +1,16 @@
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定',balance:'整体协调'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
-export const MARKERS = {door:'入户门',window:'窗',bed:'床',desk:'书桌',sofa:'沙发',stove:'灶台'};
-export const TIERS = {small:{name:'小改',sub:'软装与家具微调',text:'保留房间用途与固定设施，调整现有功能区内的布置。'},medium:{name:'中改',sub:'功能区域重组',text:'不砸墙，在现有房间内调整功能区和家具组合。'},large:{name:'大改',sub:'整体空间规划',text:'探索房间、功能区与隔断的变化，施工条件需另行核实。'}};
+export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
+export const TIERS = {
+ large:{name:'大改',sub:'硬装与功能区重新规划',text:'毛坯 / 精装：可讨论砸墙、封拆窗、改管道与重新规划功能区；施工前核实结构条件。',hard:true,zones:true},
+ medium:{name:'中改',sub:'保留硬装与功能区用途',text:'精装 / 租房：不砸墙、不封拆窗、不改管道、不随意更换功能区，只调整家具软装。',hard:false,zones:false},
+ small:{name:'微调',sub:'硬装不动，功能区可重排',text:'精装 / 租房：不动任何硬装，允许在现有条件内重新规划功能区及家具软装。',hard:false,zones:true}
+};
+export function markerFacts(f,markers=f.markers){return markers.map(m=>({...classifyMarker(m),id:m.id,type:m.type,direction:direction(m.x,m.y,f.north,f.bounds,f.width/f.height)}));}
+export function syncAttributes(h){for(const f of h.floors)f.markerAttributes=markerFacts(f);h.catalogVersion=CATALOG_VERSION;return h;}
+export function normalizeHouse(h){const copy=structuredClone(h);if(!copy.schemaVersion){copy.schemaVersion=2;copy.finish='';for(const p of copy.plans||[])p.tierLabel=p.tier==='small'?'小改（旧版）':p.tier==='medium'?'中改（旧版）':'大改（旧版）';}return syncAttributes(copy);}
 export const uid = ()=>globalThis.crypto.randomUUID();
 export const clamp = (v,min,max)=>Math.min(max,Math.max(min,Number(v)||0));
 export const normalize = n=>(Number(n)%360+360)%360;
@@ -11,7 +20,7 @@ export function direction(x,y,north=0,bounds={x:0,y:0,w:1,h:1},aspect=1) {
   return ['北','东北','东','东南','南','西南','西','西北'][Math.round(normalize(Math.atan2(dx,-dy)*180/Math.PI-north)/45)%8];
 }
 export function newHouse(mode='home') {
-  return {id:uid(),name:'',mode,type:'apartment',area:'',residents:2,goals:['balance'],budget:'3000',tier:'small',keep:'',note:'',floors:[],birth:{enabled:false,consent:false,date:'',time:'',city:'',unknown:false},revision:1,reportRevision:0,plans:[],createdAt:new Date().toISOString()};
+  return {id:uid(),schemaVersion:2,finish:'',name:'',mode,type:'apartment',area:'',residents:2,goals:['balance'],budget:'3000',tier:'small',keep:'',note:'',floors:[],birth:{enabled:false,consent:false,date:'',time:'',city:'',unknown:false},revision:1,reportRevision:0,plans:[],createdAt:new Date().toISOString()};
 }
 export function newFloor(image,name='1 层',width=800,height=620) {
   return {id:uid(),name,image,width,height,north:0,directionConfirmed:false,confirmed:false,bounds:{x:.05,y:.05,w:.9,h:.9},rooms:[],markers:[]};
@@ -29,11 +38,15 @@ export function validBirth(birth,today=new Date()) {
 }
 export function validate(h) {
   const e=[];
+  if(h.schemaVersion===2&&!['shell','furnished'].includes(h.finish))e.push('请选择毛坯或精装。');
+  if(h.finish==='shell'&&h.tier!=='large')e.push('毛坯请选择大改，完成硬装规划。');
+  if(!TIERS[h.tier])e.push('请选择可接受的方案状态。');
   if(!h.name.trim())e.push('请为这套住宅起一个名称。');
   if(!h.floors.length)e.push('请先上传户型图。');
   h.floors.forEach(f=>{
     if(!f.directionConfirmed)e.push(`${f.name}：请标注并确认东南西北。`);
     if(!f.confirmed)e.push(`${f.name}：请确认房屋范围与图面标注。`);
+    for(const room of f.rooms)if(room.points&&!validPolygon(room.points))e.push(`${f.name}：房间轮廓无效，请重新勾线。`);
     if(!f.rooms.length)e.push(`${f.name}：请至少标注一个房间。`);
   });
   if(!h.goals.length)e.push('请至少选择一个居住目标。');
@@ -55,7 +68,7 @@ export function analyse(h) {
   const add=(kind,title,text,source,floor,room,extra={})=>findings.push({id:`${floor?.id||h.id}-${findings.length}`,kind,title,text,source,floorId:floor?.id,roomId:room?.id,...extra});
   for(const f of h.floors){
     for(const r of f.rooms){
-      const orient=direction(r.x+r.w/2,r.y+r.h/2,f.north,f.bounds,f.width/f.height);
+      const anchor=roomAnchor(r),orient=direction(anchor.x,anchor.y,f.north,f.bounds,f.width/f.height);
       add('fact',`${r.name} · ${orient}侧`, `按你确认的房屋范围中心与四向，这个标注区域位于${orient}。方位只用于定位，不单独判定优劣。`,'用户标注 · 相对方位',f,r);
     }
     const study=f.rooms.find(r=>r.type==='study'),bed=f.rooms.find(r=>r.type==='bedroom');
@@ -87,24 +100,26 @@ export function makePlan(h,tier=h.tier,birth=null) {
     const target=usable.find(r=>r.type===(isRest?'bedroom':isFocus?'study':'living'))||usable[0];
     if(!target)continue;
     const markType=isRest?'bed':isFocus?'desk':'sofa';
-    const furniture=f.markers.find(m=>m.type===markType&&!m.locked&&!(h.keep&&h.keep.includes(MARKERS[m.type]))&&m.x>=target.x&&m.x<=target.x+target.w&&m.y>=target.y&&m.y<=target.y+target.h);
+    const furniture=f.markers.find(m=>m.type===markType&&!m.locked&&!CATALOG[m.type]?.fixed&&!(h.keep&&h.keep.includes(MARKERS[m.type]))&&insideRoom(m,target));
     const where=`${f.name} · ${target.name}`;
     if(furniture){
       const to={x:target.x+target.w*.62,y:target.y+target.h*.55};
       if(Math.hypot(to.x-furniture.x,to.y-furniture.y)<.06)to.x=target.x+target.w*.3;
+      if(!insideRoom(to,target))Object.assign(to,roomAnchor(target));
       moves.push({floorId:f.id,id:furniture.id,from:{x:furniture.x,y:furniture.y},to,type:markType});
       actions.push({title:`比较${MARKERS[markType]}在原区域内的新位置`,where,text:`图上箭头提供一个位置候选，保留${target.name}用途。核对家具尺寸、门窗开启和插座后，再决定是否移动。`,source:'已标注家具 × 使用目标',kind:'move'});
     }else actions.push({title:isFocus?'为专注保留一处固定位置':isRest?'让休息区的布置更集中':'整理主要活动区域',where,text:`先核对${target.name}的家具位置与尺度。当前没有可移动的对应家具标记，方案不擅自新增或移动图中物件。`,source:'房间用途 × 使用目标',kind:'layout'});
-    if(tier==='medium')actions.push({title:'在现有墙体内重新分配使用区域',where,text:`可把${isFocus?'办公与收纳':isRest?'休息与日常收纳':'交流与休闲'}明确分区，比较家具组合的两种摆法。保留厨卫、管线与已锁定区域；未确认尺寸前，不直接替换房间用途。`,source:'中改范围 · 功能分区',kind:'zone'});
+    if(tier==='small')actions.push({title:'在不动硬装的前提下重新安排功能区',where,text:`可把${isFocus?'办公与收纳':isRest?'休息与日常收纳':'交流与休闲'}明确分区，比较家具组合的两种摆法。保留厨卫、管线与已锁定区域；未确认尺寸前，不直接替换房间用途。`,source:'微调范围 · 可调整功能区用途',kind:'zone'});
+    if(tier==='medium')actions.push({title:'保留现有功能区用途',where,text:'只调整家具与软装。保留墙体、门窗、管道，以及现有房间与功能区的用途。',source:'中改范围 · 功能区不换用途',kind:'constraint'});
     if(tier==='large'){
-      partitions.push({floorId:f.id,roomId:target.id,x:target.x+target.w*.7,y:target.y+target.h*.15,h:target.h*.7});
-      actions.push({title:'探索一处分区或隔断的可能',where,text:'虚线表示待讨论的分区位置，不是拟拆墙或施工线。核实承重、采光、通行及管线条件后，才能决定是否采用实体隔断。',source:'大改范围 · 概念分区',kind:'partition'});
+      if(!target.points)partitions.push({floorId:f.id,roomId:target.id,x:target.x+target.w*.7,y:target.y+target.h*.15,h:target.h*.7});
+      actions.push({title:'探索一处分区或隔断的可能',where,text:'允许讨论砸墙、封拆窗、改管道与功能区重排，但必须先核实承重、采光、通行及管线。虚线表示待讨论分区，不是拟拆墙或施工线；不规则区域先给文字讨论，不跨轮廓画线。',source:'大改范围 · 概念分区',kind:'partition'});
     }
   }
   const style=palette(birth?.dayMaster?.element);
   actions.push({title:primary==='wealth'?'先盘点已有物品，再安排软装预算':'用一组软装建立空间的一致性',where:'可调整区域',text:`可以从已有的${style.material}中整理一组，选择${style.names}作局部点缀；保留你喜欢的物品，先试摆再决定是否添置。预算上限为 ${h.budget||'待定'} 元，不代表实际报价。`,source:birth?`日主·${birth.dayMaster.stem}${birth.dayMaster.element}的文化意象配色，不等同喜用神`:'用户目标 · 软装偏好',kind:'decor'});
   if(h.keep.trim())actions.push({title:'执行前核对你的保留清单',where:'整个住宅',text:h.keep,source:'用户保留条件 · 自由文字需逐项核对',kind:'constraint'});
-  return {id:uid(),houseId:h.id,houseName:h.name,tier,goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',actions,moves,partitions,style,floors:structuredClone(h.floors),note:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
+  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',actions,moves,partitions,style,floors:structuredClone(h.floors),note:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
 }
 export function metrics(h){
   const f=analyse(h).findings;
