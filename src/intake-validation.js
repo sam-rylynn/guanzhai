@@ -1,4 +1,4 @@
-import {validPolygon,insideRoom} from './geometry.js?v=f00a726325c4';
+import {validPolygon,insideRoom} from './geometry.js?v=58bbea2826c4';
 export const rectangle=r=>r.points||[{x:r.x,y:r.y},{x:r.x+r.w,y:r.y},{x:r.x+r.w,y:r.y+r.h},{x:r.x,y:r.y+r.h}];
 // Split every inner edge at each outer-edge intersection. Checking each interval
 // catches a region spanning a concave cutout even when all its corners are inside.
@@ -8,6 +8,7 @@ export function stageError(h,s){const f=h.floors;
  if(s===1&&!(Number(h.budget)>=0&&String(h.budget).trim()))return '请填写可接受的预算，0 元也可以。';
  if(s===2&&(!h.finish||!h.tier))return '请确认装修状态与改造范围。';
  if(s===3&&(!h.housingCity?.trim()||!h.district?.trim()||!h.community?.trim()||!(Number(h.area)>0)||!String(h.bedrooms??'').trim()||!String(h.livingrooms??'').trim()))return '请补齐城市、区域、小区（自建房可填地名）、面积和几房几厅。';
+ if(s===3){for(const [key,min] of [['buildingFloor',-5],['buildingTotalFloors',1]])if(h[key]!==undefined&&h[key]!==''&&(!Number.isInteger(Number(h[key]))||Number(h[key])<min||Number(h[key])>200))return '楼层请填写有效整数，或留空待核实。';if(Number(h.buildingFloor)>0&&Number(h.buildingTotalFloors)>0&&Number(h.buildingFloor)>Number(h.buildingTotalFloors))return '所在楼层不能高于楼栋总层数。';}
  if(s===4&&!f.length)return '请上传户型图。';
  if(s===5&&f.some(x=>!validPolygon(x.boundary||[])))return '每层都需要沿封闭外墙勾画红线并闭合。';
  if(s===6&&f.some(x=>!dimensionValid(x.extents?.width)||!dimensionValid(x.extents?.height)))return '每层的横向、纵向最长尺寸请填写米数或“未知”。';

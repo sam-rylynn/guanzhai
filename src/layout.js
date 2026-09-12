@@ -1,5 +1,5 @@
-import {insideRoom} from './geometry.js?v=f00a726325c4';
-import {CATALOG} from './catalog.js?v=f00a726325c4';
+import {insideRoom} from './geometry.js?v=58bbea2826c4';
+import {CATALOG} from './catalog.js?v=58bbea2826c4';
 export function scaleOf(f){const c=f.calibration;if(!c?.confirmed||!Number.isFinite(c.metres)||c.metres<=0||!c.a||!c.b)return null;const px=Math.hypot((c.b.x-c.a.x)*f.width,(c.b.y-c.a.y)*f.height);return px>=5?{x:f.width*c.metres/px,y:f.height*c.metres/px,mPerPixel:c.metres/px}:null;}
 export function rectOf(m,f,p=m,margin=0){const s=scaleOf(f);if(!s||!m.dimensions?.confirmed)return null;const {width,depth,rotation=0}=m.dimensions;if(![width,depth].every(n=>Number.isFinite(n)&&n>0)||![0,90].includes(rotation))return null;const w=((rotation===90?depth:width)+2*margin)/s.x,h=((rotation===90?width:depth)+2*margin)/s.y;return {x:p.x-w/2,y:p.y-h/2,w,h};}
 const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);

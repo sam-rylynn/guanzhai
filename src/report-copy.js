@@ -1,6 +1,6 @@
-import {TIERS,GOALS} from './core.js?v=f00a726325c4';
-import {orient,relation,lifeGua} from './deep.js?v=f00a726325c4';
-import {roomAnchor,insideRoom} from './geometry.js?v=f00a726325c4';
+import {TIERS,GOALS} from './core.js?v=58bbea2826c4';
+import {orient,relation,lifeGua} from './deep.js?v=58bbea2826c4';
+import {roomAnchor,insideRoom} from './geometry.js?v=58bbea2826c4';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'},GUA={北:'坎',东北:'艮',东:'震',东南:'巽',南:'离',西南:'坤',西:'兑',西北:'乾'};
 const TERMS={focus:'形峦 · 动静分区',sight:'门与床 · 先看视线',concave:'形峦 · 因形布置'};
@@ -15,7 +15,7 @@ const COPY={
 };
 export function readingItem(h,x){const c={...COPY[x.caseKey]},f=h.floors.find(f=>f.id===x.floorId),r=f?.rooms.find(r=>r.id===x.roomId);
  if(x.caseKey==='sight'&&r){const marks=f.markers.filter(m=>insideRoom(m,r)),bed=marks.some(m=>m.type==='bed')||r.type==='bedroom';if(!bed){c.term='门与座 · 先看视线';c.title='先看开门的视线，再调整常坐的位置';c.why=`${r.name}的主要家具与一处门位接近同一直线。座位应避开频繁进出的直接干扰，重点是实际开门后看见什么。`;c.action='开门后若直接面对座位，先转动或移动未锁定家具，让视线错开；中间有墙挡住，就保留原位。调整后把门开足，检查通道是否被占。';c.boost='在新位置完整使用一次，起身、取物、家人经过都顺畅，再固定摆法。';}}
- if(x.caseKey==='focus'&&h.tier==='medium')c.action='保留原房间用途，腾出一张固定桌面，用台灯和集中收纳形成工作角。桌椅拉开后留出通道；不常在家办公，就不必另设工位。';
+ if(x.caseKey==='focus'&&h.tier==='medium')c.action='保留墙体，可将低频使用区改为工作区，腾出一张固定桌面，用台灯和集中收纳形成工作角。桌椅拉开后留出通道；不常在家办公，就不必另设工位。';
  if(x.caseKey==='focus'&&h.tier==='small')c.action='不动墙和管线，把低频使用的一角改成固定工作区。先把桌、椅、资料收在同一处，试用后再确定分区；不在家办公就不必改。';
  if(x.caseKey==='focus'&&h.tier==='large')c.action='先用桌椅试出办公区真正需要的面积。长期使用确实受干扰，再讨论隔断；施工前确认承重与采光。';
  if(x.caseKey==='concave'&&h.tier==='large')c.action+=' 凹处是否能改墙，先确认里面有没有柱体、管井。';

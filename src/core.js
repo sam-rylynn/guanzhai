@@ -1,18 +1,19 @@
-import {stageError} from './intake-validation.js?v=f00a726325c4';
-import {solveLayout,scaleOf} from './layout.js?v=f00a726325c4';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=f00a726325c4';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=f00a726325c4';
-export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定',balance:'整体协调'};
+import {conceptLayout} from './concept-layout.js?v=58bbea2826c4';
+import {stageError} from './intake-validation.js?v=58bbea2826c4';
+import {solveLayout,scaleOf} from './layout.js?v=58bbea2826c4';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=58bbea2826c4';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=58bbea2826c4';
+export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
 export const TIERS = {
- large:{name:'大改',sub:'硬装与功能区重新规划',text:'毛坯 / 精装：可讨论砸墙、封拆窗、改管道与重新规划功能区；施工前核实结构条件。',hard:true,zones:true},
- medium:{name:'中改',sub:'保留硬装与功能区用途',text:'毛坯 / 精装 / 租房：不砸墙、不封拆窗、不改管道、不随意更换功能区，只调整家具软装。',hard:false,zones:false},
- small:{name:'小改',sub:'硬装不动，功能区可重排',text:'毛坯 / 精装 / 租房：不动任何硬装，允许在现有条件内重新规划功能区及家具软装。',hard:false,zones:true}
+ large:{name:'大改',sub:'墙体、门窗与功能区可调整',text:'可砸墙、调整门窗位置，重新规划功能区及软装摆放。',hard:true,walls:true,openings:true,zones:true},
+ medium:{name:'中改',sub:'保留墙体，重新安排功能区',text:'不砸墙、不调整门窗位置，可重新规划功能区及软装摆放。',hard:false,walls:false,openings:false,zones:true},
+ small:{name:'小改',sub:'只调整功能区与软装',text:'不动硬装，只调整功能区用途及家具软装摆放。',hard:false,walls:false,openings:false,zones:true}
 };
 export function markerFacts(f,markers=f.markers){return markers.map(m=>({...classifyMarker(m),id:m.id,type:m.type,direction:direction(m.x,m.y,f.north,f.bounds,f.width/f.height)}));}
 export function syncAttributes(h){for(const f of h.floors)f.markerAttributes=markerFacts(f);h.catalogVersion=CATALOG_VERSION;return h;}
-export function normalizeHouse(h){const copy=structuredClone(h);if(!copy.schemaVersion){copy.schemaVersion=2;copy.finish='';for(const p of copy.plans||[])p.tierLabel=p.tier==='small'?'小改（旧版）':p.tier==='medium'?'中改（旧版）':'大改（旧版）';}return syncAttributes(copy);}
+export function normalizeHouse(h){const copy=structuredClone(h);if(!copy.schemaVersion){copy.schemaVersion=2;copy.finish='';for(const p of copy.plans||[])p.tierLabel=p.tier==='small'?'小改（旧版）':p.tier==='medium'?'中改（旧版）':'大改（旧版）';}copy.goals=(copy.goals||[]).filter(g=>GOALS[g]);if(!copy.goals.length)copy.goals=['rest'];copy.improvementGoals=(copy.improvementGoals||[]).filter(g=>GOALS[g]).slice(0,3);return syncAttributes(copy);}
 export const uid = ()=>globalThis.crypto.randomUUID();
 export const clamp = (v,min,max)=>Math.min(max,Math.max(min,Number(v)||0));
 export const normalize = n=>(Number(n)%360+360)%360;
@@ -22,7 +23,7 @@ export function direction(x,y,north=0,bounds={x:0,y:0,w:1,h:1},aspect=1) {
   return ['北','东北','东','东南','南','西南','西','西北'][Math.round(normalize(Math.atan2(dx,-dy)*180/Math.PI-north)/45)%8];
 }
 export function newHouse(mode='home') {
-  return {id:uid(),schemaVersion:2,finish:'',name:'',mode,type:'apartment',area:'',residents:2,goals:['balance'],budget:'3000',tier:'small',keep:'',note:'',floors:[],birth:{enabled:false,consent:false,date:'',time:'',city:'',unknown:false},revision:1,reportRevision:0,plans:[],createdAt:new Date().toISOString()};
+  return {id:uid(),schemaVersion:2,finish:'',name:'',mode,type:'apartment',area:'',residents:2,goals:['rest'],householdRole:'',buildingFloor:'',buildingTotalFloors:'',improvementGoals:[],budget:'3000',tier:'small',keep:'',note:'',floors:[],birth:{enabled:false,consent:false,date:'',time:'',city:'',unknown:false},revision:1,reportRevision:0,plans:[],createdAt:new Date().toISOString()};
 }
 export function newFloor(image,name='1 层',width=800,height=620) {
   return {id:uid(),name,image,width,height,north:0,directionConfirmed:false,confirmed:false,bounds:{x:.05,y:.05,w:.9,h:.9},rooms:[],markers:[]};
@@ -98,33 +99,13 @@ export function makePlan(h,tier=h.tier,birth=null) {
   if(!TIERS[tier])throw Error('未知改动档位');
   const precise=h.layoutMode==='metric'; const geometry=precise?solveLayout(h):null;
   const report=analyse(h), actions=[],moves=[],partitions=[];
-  const primary=h.goals[0],isFocus=['work','study'].includes(primary), isRest=primary==='rest';
-  for(const f of h.floors){
-    const usable=f.rooms.filter(r=>!r.locked&&!['kitchen','bath','stairs','balcony','yard','hall'].includes(r.type)&&!(h.keep&&h.keep.includes(r.name)));
-    const target=usable.find(r=>r.type===(isRest?'bedroom':isFocus?'study':'living'))||usable[0];
-    if(!target)continue;
-    const markType=isRest?'bed':isFocus?'desk':'sofa';
-    const furniture=f.markers.find(m=>m.type===markType&&!m.locked&&!CATALOG[m.type]?.fixed&&!(h.keep&&h.keep.includes(MARKERS[m.type]))&&insideRoom(m,target));
-    const where=`${f.name} · ${target.name}`;
-    if(furniture){
-      const to={x:target.x+target.w*.62,y:target.y+target.h*.55};
-      if(Math.hypot(to.x-furniture.x,to.y-furniture.y)<.06)to.x=target.x+target.w*.3;
-      if(!insideRoom(to,target))Object.assign(to,roomAnchor(target));
-      moves.push({floorId:f.id,id:furniture.id,from:{x:furniture.x,y:furniture.y},to,type:markType});
-      actions.push({title:`比较${MARKERS[markType]}在原区域内的新位置`,where,text:`图上箭头提供一个位置候选，保留${target.name}用途。核对家具尺寸、门窗开启和插座后，再决定是否移动。`,source:'已标注家具 × 使用目标',kind:'move'});
-    }else actions.push({title:isFocus?'为专注保留一处固定位置':isRest?'让休息区的布置更集中':'整理主要活动区域',where,text:`先核对${target.name}的家具位置与尺度。当前没有可移动的对应家具标记，方案不擅自新增或移动图中物件。`,source:'房间用途 × 使用目标',kind:'layout'});
-    if(tier==='small')actions.push({title:'在不动硬装的前提下重新安排功能区',where,text:`可把${isFocus?'办公与收纳':isRest?'休息与日常收纳':'交流与休闲'}明确分区，比较家具组合的两种摆法。保留厨卫、管线与已锁定区域；未确认尺寸前，不直接替换房间用途。`,source:'微调范围 · 可调整功能区用途',kind:'zone'});
-    if(tier==='medium')actions.push({title:'保留现有功能区用途',where,text:'只调整家具与软装。保留墙体、门窗、管道，以及现有房间与功能区的用途。',source:'中改范围 · 功能区不换用途',kind:'constraint'});
-    if(tier==='large'){
-      if(!target.points)partitions.push({floorId:f.id,roomId:target.id,x:target.x+target.w*.7,y:target.y+target.h*.15,h:target.h*.7});
-      actions.push({title:'探索一处分区或隔断的可能',where,text:'允许讨论砸墙、封拆窗、改管道与功能区重排，但必须先核实承重、采光、通行及管线。虚线表示待讨论分区，不是拟拆墙或施工线；不规则区域先给文字讨论，不跨轮廓画线。',source:'大改范围 · 概念分区',kind:'partition'});
-    }
-  }
+  const primary=h.goals[0],concept=conceptLayout(h,birth);
+  moves.push(...concept.moves);actions.push(...concept.actions);
   if(precise){moves.splice(0,moves.length,...geometry.moves);partitions.length=0;for(let i=actions.length-1;i>=0;i--)if(actions[i].kind==='move')actions.splice(i,1);for(const result of geometry.floors){actions.unshift({title:result.status==='checked'?`尺寸检验 · ${result.target}候选位置`:result.status==='missing'?'尺寸布局 · 资料待补齐':'尺寸布局 · 本轮未找到候选',where:h.floors.find(f=>f.id===result.floorId)?.name,text:result.status==='checked'?`移动 ${result.position.distance} 米；中心距图像左边 ${result.position.x} 米、上边 ${result.position.y} 米。四周留距 ${result.clearance} 米，已通过房间轮廓包含与已标物件碰撞检查。`:(result.missing||[]).join('；'),source:'实测标定 × 矩形外形 × 10 厘米搜索网格',kind:'geometry'});}}
   const style=palette(birth?.dayMaster?.element);
   actions.push({title:primary==='wealth'?'先盘点已有物品，再安排软装预算':'用一组软装建立空间的一致性',where:'可调整区域',text:`可以从已有的${style.material}中整理一组，选择${style.names}作局部点缀；保留你喜欢的物品，先试摆再决定是否添置。预算上限为 ${h.budget||'待定'} 元，不代表实际报价。`,source:birth?`日主·${birth.dayMaster.stem}${birth.dayMaster.element}的文化意象配色，不等同喜用神`:'用户目标 · 软装偏好',kind:'decor'});
-  if(h.keep.trim())actions.push({title:'执行前核对你的保留清单',where:'整个住宅',text:h.keep,source:'用户保留条件 · 自由文字需逐项核对',kind:'constraint'});
-  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',layoutMode:precise?'metric':'concept',geometry,actions,moves,partitions,style,floors:structuredClone(h.floors),note:precise?geometry.scope:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
+  if(h.keep?.trim())actions.push({title:'执行前核对你的保留清单',where:'整个住宅',text:h.keep,source:'用户保留条件 · 自由文字需逐项核对',kind:'constraint'});
+  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,walls:TIERS[tier].walls,openings:TIERS[tier].openings,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',layoutMode:precise?'metric':'concept',geometry,actions,moves,zoneChanges:precise?[]:concept.zoneChanges,blocked:concept.blocked,partitions,style,floors:structuredClone(h.floors),note:precise?geometry.scope:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
 }
 export function metrics(h){
   const f=analyse(h).findings;
