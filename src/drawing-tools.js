@@ -1,4 +1,4 @@
-import {insideRoom} from './geometry.js?v=c8579f40cafb';
+import {insideRoom} from './geometry.js?v=f00a726325c4';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export function snapPoint(p,previous,first,threshold=.016,boundary=null,walls={}){
  const out={...p};

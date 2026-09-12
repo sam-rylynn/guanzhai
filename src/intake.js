@@ -1,13 +1,13 @@
-import {ROOMS,TIERS,GOALS} from './core.js?v=c8579f40cafb';
-import {CATALOG} from './catalog.js?v=c8579f40cafb';
-import {symbol} from './plan-symbols.js?v=c8579f40cafb';
-import {validPolygon,insideRoom} from './geometry.js?v=c8579f40cafb';
+import {ROOMS,TIERS,GOALS} from './core.js?v=f00a726325c4';
+import {CATALOG} from './catalog.js?v=f00a726325c4';
+import {symbol} from './plan-symbols.js?v=f00a726325c4';
+import {validPolygon,insideRoom} from './geometry.js?v=f00a726325c4';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const SCREENS=[['A','户主八字'],['A','改造预算'],['A','改造范围'],['B','住宅基本资料'],['B','上传户型图'],['B','勾画边界红线'],['B','填写最长尺寸'],['B','确认八个方位'],['C','分割功能区'],['D','标记软装位置'],['E','核对并生成']];
 const field=(name,body)=>`<label class="field"><span>${name}</span>${body}</label>`;
 const inp=(key,value,extra='')=>`<input data-field="${key}" value="${e(value)}" ${extra}>`;
 const opts=(map,val)=>Object.entries(map).map(([k,v])=>`<option value="${k}" ${String(val)===k?'selected':''}>${e(v)}</option>`).join('');
-export {stageError,dimensionValid,regionWithin} from './intake-validation.js?v=c8579f40cafb';
+export {stageError,dimensionValid,regionWithin} from './intake-validation.js?v=f00a726325c4';
 export function intake(h,s,fi,{canvas,floorTabs,selection,tool,sketch,services={}}){const b=h.birth,f=h.floors[fi],r=f?.rooms.find(x=>x.id===selection);let body='';
  const drawing=extra=>`${floorTabs(h.floors,fi,true)}<div class="intake-drawing ${s===5?'boundary-mode':''}"><div class="drawing-viewport" style="aspect-ratio:${f.width}/${f.height}"><div class="drawing-sheet">${canvas(f,{editable:[5,6,8,9].includes(s),show:s>=8})}${extra||''}</div><div class="drawing-zoom"><button data-zoom="out" aria-label="缩小图纸">−</button><button data-zoom="reset" aria-label="复位图纸">⌖</button><button data-zoom="in" aria-label="放大图纸">＋</button></div></div></div>`;
  const strokeTools=kind=>`<div class="compact-tools"><button data-tool="select">移动</button><button data-tool="${kind}">重新勾线</button><button data-action="undo-point" ${sketch.length?'':'disabled'}>撤回</button><button data-action="close-polygon" ${sketch.length>=3?'':'disabled'}>闭合</button></div>`;

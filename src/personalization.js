@@ -1,8 +1,8 @@
-import {renderReport} from './report-v07.js?v=c8579f40cafb';
-import {favorableReference} from './favorable.js?v=c8579f40cafb';
-import {enrichItem} from './consultation.js?v=c8579f40cafb';
-import {polygonArea,insideRoom} from './geometry.js?v=c8579f40cafb';
-import {analyse,GOALS,palette} from './core.js?v=c8579f40cafb';
+import {renderReport} from './report-v07.js?v=f00a726325c4';
+import {favorableReference} from './favorable.js?v=f00a726325c4';
+import {enrichItem} from './consultation.js?v=f00a726325c4';
+import {polygonArea,insideRoom} from './geometry.js?v=f00a726325c4';
+import {analyse,GOALS,palette} from './core.js?v=f00a726325c4';
 export function colorReference(h,b){const f=favorableReference(b);return {...f,label:f.method||f.status,basis:f.reason,style:palette(f.element)};}
 
 const rules=[

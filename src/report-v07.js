@@ -1,9 +1,9 @@
-import {GOALS,TIERS} from './core.js?v=c8579f40cafb';
-import {orient} from './deep.js?v=c8579f40cafb';
-import {roomAnchor} from './geometry.js?v=c8579f40cafb';
-import {favorableReference,paletteGroups} from './favorable.js?v=c8579f40cafb';
-import {missingInputs,directionItems,personalFit,yearAdvice,ELEMENT,GUA} from './report-data.js?v=c8579f40cafb';
-import {readingItem} from './report-copy.js?v=c8579f40cafb';
+import {GOALS,TIERS} from './core.js?v=f00a726325c4';
+import {orient} from './deep.js?v=f00a726325c4';
+import {roomAnchor} from './geometry.js?v=f00a726325c4';
+import {favorableReference,paletteGroups} from './favorable.js?v=f00a726325c4';
+import {missingInputs,directionItems,personalFit,yearAdvice,ELEMENT,GUA} from './report-data.js?v=f00a726325c4';
+import {readingItem} from './report-copy.js?v=f00a726325c4';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function fix(row){return `<button class="text-link" data-fix-step="${row.step}" data-fix-floor="${e(row.floorId||'')}" data-fix-room="${e(row.roomId||'')}">去修改 →</button>`;}
 function colors(b){const f=favorableReference(b);return `<section class="report-section palette-card"><span class="eyebrow">06 / 喜用配色</span><h2>${f.element?`自动喜用参考：${e(f.element)}`:'喜用待核对，先选中性搭配'}</h2><p>${e(f.reason)}${f.element?'。以下按扶抑参考搭配，三组选一组即可。':'。以下三组用于过渡。'}</p><div class="palette-options">${paletteGroups(f.element).map(([name,cs,names],i)=>`<article class="color-option"><h3>${i+1}. ${name}</h3><div class="color-trio">${cs.map((c,k)=>`<span><i style="background:${c}"></i>${names[k]}<small>${['窗帘 / 地毯','家具','抱枕 / 小件'][k]}</small></span>`).join('')}</div><p>${names[0]}用于窗帘或地毯，${names[1]}接续家具，${names[2]}点缀抱枕；先试小样再购买。</p></article>`).join('')}</div></section>`;}

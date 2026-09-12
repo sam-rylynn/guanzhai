@@ -1,5 +1,5 @@
 // Deterministic line-plan segmentation, no semantic model or remote request.
-import {polygonBounds,validPolygon} from './geometry.js?v=c8579f40cafb';
+import {polygonBounds,validPolygon} from './geometry.js?v=f00a726325c4';
 export const RECOGNITION_VERSION='line-regions-1';
 export function detectRegions({data,width:w,height:h},{threshold=165,gap=20,minArea=.012}={}){
  if(w*h>1000000||w<16||h<16)throw Error('识图输入尺寸不适用');

@@ -1,15 +1,15 @@
-import {service,serviceCapabilities} from './integrations.js?v=c8579f40cafb';
-import {favorableReference} from './favorable.js?v=c8579f40cafb';
-import {symbol} from './plan-symbols.js?v=c8579f40cafb';
-import {bindViewport,snapPoint} from './drawing-tools.js?v=c8579f40cafb';
-import {intake,SCREENS,stageError,dimensionValid,regionWithin} from './intake.js?v=c8579f40cafb';
-import {personalizedReport,improvementPlan,recommend,colorReference} from './personalization.js?v=c8579f40cafb';
-import {recognizeImage} from './recognition.js?v=c8579f40cafb';
-import {recognitionPanel,recognitionOverlay,footprints,calibrationOverlay,floorDataPanel,deepReport,precisionPicker,precisionResult} from './advanced-ui.js?v=c8579f40cafb';
-import {CATALOG} from './catalog.js?v=c8579f40cafb';
-import {polygonBounds,validPolygon,resizeRegion,insideRoom,roomAnchor} from './geometry.js?v=c8579f40cafb';
-import {GOALS,ROOMS,MARKERS,TIERS,uid,clamp,normalize,direction,newHouse,newFloor,validate,validBirth,computeBirth,analyse,makePlan,metrics,syncAttributes,normalizeHouse} from './core.js?v=c8579f40cafb';
-import {listHouses,putHouse,removeHouse} from './store.js?v=c8579f40cafb';
+import {service,serviceCapabilities} from './integrations.js?v=f00a726325c4';
+import {favorableReference} from './favorable.js?v=f00a726325c4';
+import {symbol} from './plan-symbols.js?v=f00a726325c4';
+import {bindViewport,snapPoint} from './drawing-tools.js?v=f00a726325c4';
+import {intake,SCREENS,stageError,dimensionValid,regionWithin} from './intake.js?v=f00a726325c4';
+import {personalizedReport,improvementPlan,recommend,colorReference} from './personalization.js?v=f00a726325c4';
+import {recognizeImage} from './recognition.js?v=f00a726325c4';
+import {recognitionPanel,recognitionOverlay,footprints,calibrationOverlay,floorDataPanel,deepReport,precisionPicker,precisionResult} from './advanced-ui.js?v=f00a726325c4';
+import {CATALOG} from './catalog.js?v=f00a726325c4';
+import {polygonBounds,validPolygon,resizeRegion,insideRoom,roomAnchor} from './geometry.js?v=f00a726325c4';
+import {GOALS,ROOMS,MARKERS,TIERS,uid,clamp,normalize,direction,newHouse,newFloor,validate,validBirth,computeBirth,analyse,makePlan,metrics,syncAttributes,normalizeHouse} from './core.js?v=f00a726325c4';
+import {listHouses,putHouse,removeHouse} from './store.js?v=f00a726325c4';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon=(name,size=20)=>`<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${({house:'<path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/>',arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',plus:'<path d="M12 5v14M5 12h14"/>',upload:'<path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/>',compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-2 6-6 2 2-6Z"/>',grid:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',leaf:'<path d="M20 3c0 12-5 17-11 14-6-3-3-11 11-14ZM4 21l11-12"/>',check:'<path d="m5 12 4 4 10-10"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',compare:'<path d="M8 3v18M16 3v18M3 8h10m-3-3 3 3-3 3M11 16h10m-3-3 3 3-3 3"/>',file:'<path d="M6 3h9l4 4v14H6ZM14 3v5h5M9 12h7M9 16h7"/>',lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',back:'<path d="M20 12H4m6-6-6 6 6 6"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1 1M18 18l1 1M5 19l1-1M18 6l1-1"/>',download:'<path d="M12 3v13m-5-5 5 5 5-5M4 17v4h16v-4"/>',trash:'<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>'})[name]||'<circle cx="12" cy="12" r="8"/>'}</svg>`;
@@ -31,7 +31,7 @@ function header(){return `<header class="header"><div class="header-inner">${bra
 function footer(){return `<footer class="footer">${page!=='editor'?'<button class="footer-back" data-action="go-back">← 返回上一级</button>':''}<span>观宅 <i>·</i> 观一宅格局，寻一处安居</span><div><button data-action="privacy">${icon('lock',13)} 宅档保存在本机</button><button data-action="about">关于分析</button><span>体验版 0.7</span></div></footer>`;}
 function render(){const drawingOpen=page==='report'&&$('.report-drawing')?.open;const body=({home:home,editor:editor,archive:archive,report:report,compare:compare,planner:planner,plan:planView,plans:plans})[page]||home;document.body.classList.toggle('is-intake',page==='editor');document.body.classList.toggle('is-home',page==='home');$('#app').innerHTML=header()+`<main id="main" tabindex="-1">${body()}</main>`+footer();bind();if(drawingOpen&&$('.report-drawing'))$('.report-drawing').open=true;}
 function zhixingEntry(){return `<aside class="zhixing-entry" aria-label="知星排盘与个人解读"><div><span class="source-tag">知星 × 观宅</span><h2>先读懂自己，再看适合的家</h2><p>知星排盘与个人解读；观宅结合户主八字，逐房间分析人宅关系。</p></div><a class="btn outline" href="https://zhixng.cn/app.html?from=guanzhai" target="_blank" rel="noopener noreferrer">去知星排盘 ↗</a><small>两个产品独立保存资料，跳转不传递出生信息。</small></aside>`;}
-function home(){return `<section class="mobile-home"><div class="home-title"><span>东方居住智慧</span><h1>观一宅格局<br>寻一处<span>安居</span></h1></div><figure class="architecture-hero"><img src="./assets/hero-architecture-luopan-v2.png" alt="住宅建筑剖视与罗盘" width="1254" height="1254" fetchpriority="high"></figure><div class="home-entry-pair"><button class="home-entry" data-new="home"><b>分析我的家</b><span>看懂现有格局，找到改善方法</span>${icon('arrow')}</button><button class="home-entry" data-new="compare"><b>比较候选房</b><span>并排比较，选更适合的一宅</span>${icon('compare')}</button></div><p class="home-local-note">上传户型图 · 标明八方位 · 宅档保存在本机</p></section>`;}
+function home(){return `<section class="mobile-home"><div class="home-title"><span>东方居住智慧</span><h1>观一宅格局<br>寻一处<span>安居</span></h1></div><figure class="architecture-hero celestial-hero"><img src="./assets/hero-celestial-luopan-v1.webp" alt="星空中的金色天文罗经，罗盘与浑天环相交" width="1448" height="1086" fetchpriority="high"></figure><div class="home-entry-pair"><button class="home-entry" data-new="home"><b>分析我的家</b><span>看懂现有格局，找到改善方法</span>${icon('arrow')}</button><button class="home-entry" data-new="compare"><b>比较候选房</b><span>并排比较，选更适合的一宅</span>${icon('compare')}</button></div><p class="home-local-note">上传户型图 · 标明八方位 · 宅档保存在本机</p></section>`;}
 
 function field(label,html,full=false){return `<label class="field ${full?'full':''}"><span>${label}</span>${html}</label>`;}
 function input(key,value,extra=''){return `<input data-field="${key}" value="${esc(value)}" ${extra}>`;}

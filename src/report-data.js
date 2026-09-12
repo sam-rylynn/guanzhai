@@ -1,7 +1,7 @@
-import {orient,annualStars,relation,lifeGua,eightMap} from './deep.js?v=c8579f40cafb';
-import {roomAnchor} from './geometry.js?v=c8579f40cafb';
-import {classifyMarker,CATALOG} from './catalog.js?v=c8579f40cafb';
-import {favorableReference} from './favorable.js?v=c8579f40cafb';
+import {orient,annualStars,relation,lifeGua,eightMap} from './deep.js?v=f00a726325c4';
+import {roomAnchor} from './geometry.js?v=f00a726325c4';
+import {classifyMarker,CATALOG} from './catalog.js?v=f00a726325c4';
+import {favorableReference} from './favorable.js?v=f00a726325c4';
 export const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'},GUA={北:'坎',东北:'艮',东:'震',东南:'巽',南:'离',西南:'坤',西:'兑',西北:'乾'};
 export function missingInputs(h,b){const rows=[];if(!b)rows.push({title:'户主出生资料未完成',action:'补上年月日、时间和城市，才能判断人宅适配。',step:0});else if(b.unknown||b.boundaries?.length)rows.push({title:b.unknown?'出生时辰缺失':'出生时间接近分界',action:'核对出生时间后，重新推导喜用参考。',step:0});
  for(const f of h.floors){const base={floorId:f.id};if(!f.boundary?.length)rows.push({...base,title:f.name+'的封闭边界未确认',action:'沿封闭外墙勾画红线，排除半封阳台。',step:5});if(!f.extents?.confirmed||![f.extents.width,f.extents.height].every(x=>Number(x)>0))rows.push({...base,title:f.name+'的红线尺寸未实测核对',action:'填写横、纵最长尺寸并确认实测；目前不能给厘米级落位。',step:6});for(const r of f.rooms)if(![r.measurements?.width,r.measurements?.depth].every(x=>Number(x)>0))rows.push({...base,roomId:r.id,title:r.name+'的尺寸缺失',action:'补填两条净尺寸，或继续保留“未知”。',step:8});if(!f.directionConfirmed)rows.push({...base,title:f.name+'的八方位未确认',action:'核对图纸上方对应的方向。',step:7});if(!f.markers.some(m=>m.type==='door'))rows.push({...base,title:f.name+'的入户门未标',action:'标明实际入户位置。',step:9});if(!f.markers.some(m=>m.type==='window'))rows.push({...base,title:f.name+'的窗位未标',action:'补上可开启窗的位置。',step:9});}
