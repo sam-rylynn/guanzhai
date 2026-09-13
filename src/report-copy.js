@@ -1,6 +1,6 @@
-import {TIERS,GOALS} from './core.js?v=58bbea2826c4';
-import {orient,relation,lifeGua} from './deep.js?v=58bbea2826c4';
-import {roomAnchor,insideRoom} from './geometry.js?v=58bbea2826c4';
+import {TIERS,GOALS} from './core.js?v=52d9643d21e1';
+import {orient,relation,lifeGua} from './deep.js?v=52d9643d21e1';
+import {roomAnchor,insideRoom} from './geometry.js?v=52d9643d21e1';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'},GUA={北:'坎',东北:'艮',东:'震',东南:'巽',南:'离',西南:'坤',西:'兑',西北:'乾'};
 const TERMS={focus:'形峦 · 动静分区',sight:'门与床 · 先看视线',concave:'形峦 · 因形布置'};
