@@ -1,5 +1,5 @@
 // Deterministic line-plan segmentation, no semantic model or remote request.
-import {polygonBounds,validPolygon} from './geometry.js?v=52d9643d21e1';
+import {polygonBounds,validPolygon} from './geometry.js?v=7c4f4cec418c';
 export const RECOGNITION_VERSION='line-regions-2';
 function traceCells(cells,w,h){
  const set=new Set(cells),edges=new Map();const key=(x,y)=>y*(w+1)+x;
@@ -39,6 +39,48 @@ export function detectRegions({data,width:w,height:h},{threshold=165,gap=20,minA
  const boundary=outline.length<=120&&validPolygon(outline)?outline:null;
  return {version:RECOGNITION_VERSION,boundary,candidates,walls:{x:lines('x'),y:lines('y')},parameters:{threshold,gap},note:candidates.length?'仅为封闭线段区域候选：可能合并相通房间或误认家具，逐个核对后采用。':'未找到可靠的封闭区域。可调整断线连接长度，或手动勾线。彩色效果图、斜拍和复杂家具图暂不适用。'};
 }
-export async function recognizeImage(src,options={}){
- const img=new Image();img.src=src;await img.decode();const scale=Math.min(1,480/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,c.width,c.height);return detectRegions(ctx.getImageData(0,0,c.width,c.height),options);
+const canceled=()=>Object.assign(Error('已取消识图。'),{name:'AbortError'});
+export function loadRecognitionImage(src,{signal,timeoutMs=12000}={}){
+ return new Promise((resolve,reject)=>{
+  if(signal?.aborted){reject(canceled());return;}
+  const img=new Image();let timer,done=false;
+  const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);img.onload=img.onerror=null;signal?.removeEventListener('abort',abort);if(err){img.removeAttribute('src');reject(err);}else resolve(img);};
+  const abort=()=>finish(canceled());
+  img.onload=()=>finish(img.naturalWidth&&img.naturalHeight?null:Error('这张图片没有可读取的图面，请重新上传 JPG 或 PNG 户型图。'));
+  img.onerror=()=>finish(Error('未能读取这张户型图。请返回检查底图是否显示，或重新上传 JPG / PNG 后重试。'));
+  signal?.addEventListener('abort',abort,{once:true});
+  timer=setTimeout(()=>finish(Error('读取户型图超时。请检查网络或重新上传图片，再点重试。')),timeoutMs);
+  if(typeof src!=='string'||!src.trim()){finish(Error('没有可读取的户型图，请先上传图片。'));return;}
+  img.src=src;
+ });
+}
+async function runDetection(data,options,{signal,timeoutMs=12000}={}){
+ if(signal?.aborted)throw canceled();
+ if(typeof Worker==='function'){
+  try{return await new Promise((resolve,reject)=>{
+   let worker,timer,done=false;
+   const finish=(err,result)=>{if(done)return;done=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);worker?.terminate();err?reject(err):resolve(result);};
+   const abort=()=>finish(canceled());
+   try{worker=new Worker(new URL('./recognition-worker.js?v=7c4f4cec418c',import.meta.url),{type:'module'});}catch(err){finish(Object.assign(Error('当前浏览器未启用识图线程。'),{code:'worker-unavailable'}));return;}
+   worker.onmessage=ev=>ev.data.error?finish(Error(ev.data.error)):finish(null,ev.data.result);
+   worker.onerror=ev=>{ev.preventDefault();finish(Object.assign(Error('识图线程未能加载。'),{code:'worker-unavailable'}));};
+   signal?.addEventListener('abort',abort,{once:true});
+   timer=setTimeout(()=>finish(Error('这张图识别时间过长，已停止处理。请换用清晰的二维户型线稿，或手动勾画。')),timeoutMs);
+   // Keep the original pixel buffer available for browsers that block module workers.
+   try{worker.postMessage({image:{data:data.data,width:data.width,height:data.height},options});}catch(err){finish(Object.assign(Error('当前浏览器无法启动识图线程。'),{code:'worker-unavailable'}));}
+  });}catch(err){if(err.code!=='worker-unavailable')throw err;}
+ }
+ // Bounded compatibility path; yield first so the loading panel is visible.
+ await new Promise(resolve=>setTimeout(resolve,40));
+ if(signal?.aborted)throw canceled();
+ return detectRegions(data,options);
+}
+export async function recognizeImage(src,options={},runtime={}){
+ const img=await loadRecognitionImage(src,{signal:runtime.signal,timeoutMs:runtime.imageTimeoutMs});
+ if(runtime.signal?.aborted)throw canceled();
+ const scale=Math.min(1,480/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);
+ if(c.width<16||c.height<16)throw Error('图纸过窄或过小，请裁去多余空白后重新上传清楚的户型图。');
+ const ctx=c.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('当前浏览器无法读取图面，请在系统浏览器中打开后重试。');
+ let pixels;try{ctx.drawImage(img,0,0,c.width,c.height);pixels=ctx.getImageData(0,0,c.width,c.height);}catch{throw Error('无法读取图面像素，请重新上传本机保存的 JPG 或 PNG 户型图。');}
+ return runDetection(pixels,options,{signal:runtime.signal,timeoutMs:runtime.workerTimeoutMs});
 }
