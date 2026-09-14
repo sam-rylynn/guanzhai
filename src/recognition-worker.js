@@ -1,4 +1,4 @@
-import {detectRegions} from './recognition.js?v=7c4f4cec418c';
+import {detectRegions} from './recognition.js?v=82168a3e723a';
 // Entirely browser-local: this worker never makes API or image-upload requests.
 self.onmessage=event=>{
  try{self.postMessage({result:detectRegions(event.data.image,event.data.options)});}
