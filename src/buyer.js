@@ -1,6 +1,6 @@
-import {favorableReference} from './favorable.js?v=82168a3e723a';
-import {roleOf,sleepingDirection} from './residence.js?v=82168a3e723a';
-import {newHouse} from './core.js?v=82168a3e723a';
+import {favorableReference} from './favorable.js?v=11c9ab943438';
+import {roleOf,sleepingDirection} from './residence.js?v=11c9ab943438';
+import {newHouse} from './core.js?v=11c9ab943438';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function buyerError(h){if(!h.buyingCity?.trim())return '请填写准备买房的城市。';if(h.purchaseBudget!==''&&h.purchaseBudget!=null&&(!Number.isFinite(Number(h.purchaseBudget))||Number(h.purchaseBudget)<=0||Number(h.purchaseBudget)>100000))return '购房总预算请填写有效万元数，或留空。';if(!Number.isInteger(Number(h.preferredRooms))||Number(h.preferredRooms)<1||Number(h.preferredRooms)>12)return '请选择需要的卧室数量。';return '';}
 export function buyingAdvice(h,b){

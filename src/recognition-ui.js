@@ -1,7 +1,7 @@
-import {recognizeImage,RECOGNITION_VERSION} from './recognition.js?v=82168a3e723a';
-import {validPolygon,polygonBounds,insideRoom,roomAnchor} from './geometry.js?v=82168a3e723a';
-import {regionWithin} from './intake-validation.js?v=82168a3e723a';
-import {ROOMS,uid} from './core.js?v=82168a3e723a';
+import {recognizeImage,RECOGNITION_VERSION} from './recognition.js?v=11c9ab943438';
+import {validPolygon,polygonBounds,insideRoom,roomAnchor} from './geometry.js?v=11c9ab943438';
+import {regionWithin} from './intake-validation.js?v=11c9ab943438';
+import {ROOMS,uid} from './core.js?v=11c9ab943438';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function overlap(a,b){let union=0,both=0;const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.max(a.x+a.w,b.x+b.w)-x,h=Math.max(a.y+a.h,b.y+b.h)-y;for(let j=0;j<32;j++)for(let i=0;i<32;i++){const p={x:x+w*(i+.5)/32,y:y+h*(j+.5)/32},aa=insideRoom(p,a),bb=insideRoom(p,b);if(aa||bb)union++;if(aa&&bb)both++;}return union?both/union:0;}
 // Returns a new floor, so a failed validation never partially overwrites existing work.

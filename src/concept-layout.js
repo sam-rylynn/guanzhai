@@ -1,8 +1,8 @@
-import {insideRoom,roomAnchor} from './geometry.js?v=82168a3e723a';
-import {rectangle,regionWithin} from './intake-validation.js?v=82168a3e723a';
-import {CATALOG} from './catalog.js?v=82168a3e723a';
-import {symbol} from './plan-symbols.js?v=82168a3e723a';
-import {sleepingDirection,DIRECTIONS} from './residence.js?v=82168a3e723a';
+import {insideRoom,roomAnchor} from './geometry.js?v=11c9ab943438';
+import {rectangle,regionWithin} from './intake-validation.js?v=11c9ab943438';
+import {CATALOG} from './catalog.js?v=11c9ab943438';
+import {symbol} from './plan-symbols.js?v=11c9ab943438';
+import {sleepingDirection,DIRECTIONS} from './residence.js?v=11c9ab943438';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mod=n=>(Number(n||0)%360+360)%360;
 export const symbolSize=m=>.06*Math.max(.5,Math.min(3,Number(m.uiScale)||1));
@@ -11,7 +11,7 @@ const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 const excluded=['kitchen','bath','stairs','balcony','yard','hall'];
 function wallDistance(p,r,f){let best=Infinity;const ps=rectangle(r);for(let i=0;i<ps.length;i++){const a=ps[i],b=ps[(i+1)%ps.length],dx=(b.x-a.x)*f.width/f.height,dy=b.y-a.y,px=(p.x-a.x)*f.width/f.height,py=p.y-a.y,t=Math.max(0,Math.min(1,(px*dx+py*dy)/(dx*dx+dy*dy||1)));best=Math.min(best,Math.hypot(px-dx*t,py-dy*t));}return best;}
 function backingAngle(p,r,f){let best=null,dist=Infinity;const ps=rectangle(r),aspect=f.width/f.height;for(let i=0;i<ps.length;i++){const a=ps[i],b=ps[(i+1)%ps.length],dx=(b.x-a.x)*aspect,dy=b.y-a.y,px=(p.x-a.x)*aspect,py=p.y-a.y,t=Math.max(0,Math.min(1,(px*dx+py*dy)/(dx*dx+dy*dy||1))),vx=dx*t-px,vy=dy*t-py,d=Math.hypot(vx,vy);if(d<dist){dist=d;best=mod(Math.round(Math.atan2(vx,-vy)*180/Math.PI/15)*15);}}return best;}
-function utility(m,r,f,goals,b){const edge=wallDistance(m,r,f),openings=f.markers.filter(x=>['door','window'].includes(x.type)),near=Math.min(.3,...openings.map(x=>Math.hypot((m.x-x.x)*f.width/f.height,m.y-x.y))),anchor=roomAnchor(r),centre=Math.hypot(m.x-anchor.x,m.y-anchor.y);let extra=0;if(m.type==='bed'||m.type==='sofa'){const angle=mod(m.rotation)*Math.PI/180,offset=symbolSize(m)/2,head={x:m.x+Math.sin(angle)*offset,y:m.y-Math.cos(angle)*offset*f.width/f.height};extra=-wallDistance(head,r,f)*2;if(m.type==='bed'&&sleepingDirection(b).directions.includes(DIRECTIONS[Math.round(mod(m.rotation-f.north)/45)%8]))extra+=.04;}return near*2-edge*1.8+centre*.3+extra;}
+function utility(m,r,f,goals,b){const edge=wallDistance(m,r,f),openings=f.markers.filter(x=>['door','interiorDoor','window'].includes(x.type)),near=Math.min(.3,...openings.map(x=>Math.hypot((m.x-x.x)*f.width/f.height,m.y-x.y))),anchor=roomAnchor(r),centre=Math.hypot(m.x-anchor.x,m.y-anchor.y);let extra=0;if(m.type==='bed'||m.type==='sofa'){const angle=mod(m.rotation)*Math.PI/180,offset=symbolSize(m)/2,head={x:m.x+Math.sin(angle)*offset,y:m.y-Math.cos(angle)*offset*f.width/f.height};extra=-wallDistance(head,r,f)*2;if(m.type==='bed'&&sleepingDirection(b).directions.includes(DIRECTIONS[Math.round(mod(m.rotation-f.north)/45)%8]))extra+=.04;}return near*2-edge*1.8+centre*.3+extra;}
 export function conceptLayout(h,b){const moves=[],actions=[],zoneChanges=[],blocked=[];
  const goals=h.goals||[],wanted=new Set(['bed','desk','sofa','cabinet','bookshelf','diningTable']);
  for(const f of h.floors){const working=structuredClone(f.markers),rooms=f.rooms.filter(r=>!r.locked&&!excluded.includes(r.type));

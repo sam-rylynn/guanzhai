@@ -1,2 +1,1 @@
-// Empty = same origin. Public deployments set GUANZHAI_SERVICE_ORIGIN during build.
-export const SERVICE_BASE='';
+export const SERVICE_BASE="https://1451100549-65fkjjs5w9.ap-guangzhou.tencentscf.com";

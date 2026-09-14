@@ -38,3 +38,18 @@
  #modal.recognition-modal .dialog-actions .btn{flex:1}
  #modal.recognition-modal .recognition-settings select{min-height:44px;width:76px}
 }
+/* Cloud recognition keeps the plan visible; adoption never happens on upload. */
+.vision-viewport{position:relative;height:clamp(180px,38dvh,420px);min-height:180px;overflow:hidden;touch-action:none;background:#0e1220;border:1px solid #c9a85c44;border-radius:8px}
+.vision-viewport .drawing-sheet{position:absolute;left:0;top:0;max-width:none}
+.vision-plan,.vision-plan img,.vision-plan svg{width:100%;height:100%;display:block}
+.vision-plan{position:relative}.vision-plan img{object-fit:fill;pointer-events:none}.vision-plan svg{position:absolute;inset:0;pointer-events:none}
+.vision-plan text{fill:#fff;stroke:#0e1220;stroke-width:6;paint-order:stroke;font:600 26px sans-serif;text-anchor:middle;dominant-baseline:middle}
+.vision-plan .recognized-region{fill:#c9a85c12;stroke:#c9a85c;stroke-width:3}.vision-plan .recognized-region.chosen{fill:#c9a85c44;stroke-width:5}
+.vision-plan .recognized-boundary{fill:none;stroke:#ff736c;stroke-width:5}.vision-plan .candidate{stroke-dasharray:10 6}
+.vision-object rect{fill:#7fc9e922;stroke:#7fc9e9;stroke-width:3}.vision-object.chosen rect{fill:#7fc9e955;stroke-width:5}
+.vision-tabs{display:flex;gap:8px;margin:14px 0}.vision-tabs button{flex:1;min-height:44px}.vision-tabs .active{color:#e0c681;border-color:#c9a85c}
+.vision-row{display:grid;grid-template-columns:65px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center;margin:8px 0}
+.vision-row input,.vision-row select{width:100%;min-width:0}.vision-object-row svg{width:36px;height:36px;flex:none}
+.vision-modal small{display:block;margin:10px 0}.vision-modal .dialog-actions{gap:8px}.vision-modal .dialog-actions .btn{padding:12px 10px}
+.vision-modal .zoom-controls{position:absolute;right:8px;bottom:8px;z-index:3;display:flex}.vision-modal .zoom-controls button{min-width:44px;min-height:44px}
+#modal.vision-modal>[data-vision-status],#modal.vision-modal>.vision-consent{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
