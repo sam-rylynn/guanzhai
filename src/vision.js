@@ -1,7 +1,7 @@
-import {CATALOG} from './catalog.js?v=11c9ab943438';
-import {validPolygon,polygonBounds,insideRoom} from './geometry.js?v=11c9ab943438';
-import {adoptRecognition} from './recognition-ui.js?v=11c9ab943438';
-import {uid,ROOMS} from './core.js?v=11c9ab943438';
+import {CATALOG} from './catalog.js?v=b1cae4b4be94';
+import {validPolygon,polygonBounds,insideRoom} from './geometry.js?v=b1cae4b4be94';
+import {adoptRecognition} from './recognition-ui.js?v=b1cae4b4be94';
+import {uid,ROOMS} from './core.js?v=b1cae4b4be94';
 export const VISION_VERSION='floorplan-vision-1';
 const unit=n=>Number.isFinite(n)&&n>=0&&n<=1;
 const plain=(v,max=24)=>typeof v==='string'?v.replace(/[\u0000-\u001f<>]/g,'').slice(0,max):'';

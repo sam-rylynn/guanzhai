@@ -1,5 +1,5 @@
 // Deterministic line-plan segmentation, no semantic model or remote request.
-import {polygonBounds,validPolygon} from './geometry.js?v=11c9ab943438';
+import {polygonBounds,validPolygon} from './geometry.js?v=b1cae4b4be94';
 export const RECOGNITION_VERSION='line-regions-2';
 function traceCells(cells,w,h){
  const set=new Set(cells),edges=new Map();const key=(x,y)=>y*(w+1)+x;
@@ -61,7 +61,7 @@ async function runDetection(data,options,{signal,timeoutMs=12000}={}){
    let worker,timer,done=false;
    const finish=(err,result)=>{if(done)return;done=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);worker?.terminate();err?reject(err):resolve(result);};
    const abort=()=>finish(canceled());
-   try{worker=new Worker(new URL('./recognition-worker.js?v=11c9ab943438',import.meta.url),{type:'module'});}catch(err){finish(Object.assign(Error('当前浏览器未启用识图线程。'),{code:'worker-unavailable'}));return;}
+   try{worker=new Worker(new URL('./recognition-worker.js?v=b1cae4b4be94',import.meta.url),{type:'module'});}catch(err){finish(Object.assign(Error('当前浏览器未启用识图线程。'),{code:'worker-unavailable'}));return;}
    worker.onmessage=ev=>ev.data.error?finish(Error(ev.data.error)):finish(null,ev.data.result);
    worker.onerror=ev=>{ev.preventDefault();finish(Object.assign(Error('识图线程未能加载。'),{code:'worker-unavailable'}));};
    signal?.addEventListener('abort',abort,{once:true});

@@ -1,6 +1,6 @@
-import {direction} from './core.js?v=11c9ab943438';
-import {insideRoom,polygonBounds,validPolygon} from './geometry.js?v=11c9ab943438';
-import {favorableReference} from './favorable.js?v=11c9ab943438';
+import {direction} from './core.js?v=b1cae4b4be94';
+import {insideRoom,polygonBounds,validPolygon} from './geometry.js?v=b1cae4b4be94';
+import {favorableReference} from './favorable.js?v=b1cae4b4be94';
 
 export const DIRECTIONS=['北','东北','东','东南','南','西南','西','西北'];
 // Family positions follow 說卦; this is a cultural association, never a health forecast.

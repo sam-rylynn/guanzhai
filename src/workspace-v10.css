@@ -53,3 +53,5 @@
 .vision-modal small{display:block;margin:10px 0}.vision-modal .dialog-actions{gap:8px}.vision-modal .dialog-actions .btn{padding:12px 10px}
 .vision-modal .zoom-controls{position:absolute;right:8px;bottom:8px;z-index:3;display:flex}.vision-modal .zoom-controls button{min-width:44px;min-height:44px}
 #modal.vision-modal>[data-vision-status],#modal.vision-modal>.vision-consent{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+
+.vision-modal .zoom-controls{background:#101827;border:1px solid #c9a85c;border-radius:8px;box-shadow:0 2px 8px #0005;overflow:hidden}.vision-modal .zoom-controls button{color:#f1d591;background:#101827;border:0;font-size:16px}.vision-modal .zoom-controls button+button{border-left:1px solid #b89d5d55}
