@@ -1,9 +1,9 @@
-import {orient,annualStars,relation,lifeGua,eightMap} from './deep.js?v=716b99049af8';
-import {roomAnchor} from './geometry.js?v=716b99049af8';
-import {classifyMarker,CATALOG} from './catalog.js?v=716b99049af8';
-import {favorableReference} from './favorable.js?v=716b99049af8';
-import {externalFindings} from './residence.js?v=716b99049af8';
-import {insideRoom,validPolygon} from './geometry.js?v=716b99049af8';
+import {orient,annualStars,relation,lifeGua,eightMap} from './deep.js?v=124593df2a03';
+import {roomAnchor} from './geometry.js?v=124593df2a03';
+import {classifyMarker,CATALOG} from './catalog.js?v=124593df2a03';
+import {favorableReference} from './favorable.js?v=124593df2a03';
+import {externalFindings} from './residence.js?v=124593df2a03';
+import {insideRoom,validPolygon} from './geometry.js?v=124593df2a03';
 export const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'},GUA={北:'坎',东北:'艮',东:'震',东南:'巽',南:'离',西南:'坤',西:'兑',西北:'乾'};
 export function annotationCoverage(h){
  const rooms=h.floors.flatMap(f=>f.rooms),count=v=>v!==''&&v!=null&&Number.isInteger(Number(v))&&Number(v)>=0?Number(v):null;
@@ -32,10 +32,10 @@ export function missingInputs(h,b){
  }
  const external=externalFindings(h);
  if(!external.length)add('environment','宅外周边资料待补录','查询住宅地址，核对具体楼栋；户型图看不见窗外遮挡。',3);
- else for(const x of external.filter(x=>x.kind==='unknown'))add('environment',x.title+' · 尚未现场核实',x.action,3,{environmentId:x.id,direction:x.direction});
+ else for(const x of external.filter(x=>x.kind==='unknown'))add('environment',x.title+' · 尚未现场核实',x.action,3,{environmentId:x.id,direction:x.direction,floorId:x.floorId,roomId:x.roomId,markerId:x.markerId});
  return rows;
 }
 export function directionItems(h){return h.floors.flatMap(f=>Object.keys(GUA).flatMap(d=>{const markers=f.markers.filter(m=>orient(m,f)===d),want=['北','西南','东','东南'].includes(d)?'sand':'water';const known=markers.map(m=>({...m,nature:classifyMarker(m).nature})).filter(m=>['sand','water'].includes(m.nature));if(!known.length)return [];const matches=known.filter(m=>m.nature===want),opposite=known.filter(m=>m.nature!==want);return [{floorId:f.id,direction:d,gua:GUA[d],want,good:matches.map(m=>CATALOG[m.type].name),bad:opposite.map(m=>CATALOG[m.type].name),locked:opposite.some(m=>m.locked||CATALOG[m.type].fixed),markers:known}];}));}
 export function personalFit(h,b){const favored=favorableReference(b);const rooms=h.floors.flatMap(f=>f.rooms.filter(r=>['bedroom','study','living'].includes(r.type)).map(r=>({floorId:f.id,roomId:r.id,name:r.name,direction:orient(roomAnchor(r),f)})));const aligned=rooms.filter(r=>ELEMENT[r.direction]===favored.element);const gua=b&&lifeGua(b.chartYear,h.birth.sex);return {favored,rooms,aligned,gua,map:gua?eightMap(gua.gua):null};}
 export const YEAR_STARS={1:'一白贪狼',2:'二黑巨门',3:'三碧禄存',4:'四绿文曲',5:'五黄廉贞',6:'六白武曲',7:'七赤破军',8:'八白左辅',9:'九紫右弼'};
-export function yearAdvice(h,goals){const year=Number(h.assessmentYear)||new Date().getFullYear(),stars=annualStars(year);if(!stars)return {year,rows:[]};const picks={wealth:[9,'九紫取名望与呈现之意，先整理这处的展示与接待位置，再添一件暖色陶器或柔光台灯。'],work:[6,'六白取秩序与责任之意。用金属文件架集中正在办理的资料，桌面只留当前事项。'],study:[4,'四绿取文昌之意。把常读书籍和固定台灯放在这里；合适时再添小型木质笔筒。'],family:[9,'九紫取喜庆与相聚之意。保留共同坐下的位置，可添暖色织物与一盏柔光灯。'],rest:[2,'二黑在传统中与照料、静养相关。这一处先减少杂物和夜间强光，不为年星添水景或搬床。'],balance:[1,'一白取交流之意。保持中心通行，装饰放边柜上，不在中间堆放摆件。']};return {year,rows:goals.filter(goal=>picks[goal]).map(goal=>{const [n,action]=picks[goal],direction=Object.keys(stars).find(d=>stars[d]===n),rooms=h.floors.flatMap(f=>f.rooms.filter(r=>orient(roomAnchor(r),f)===direction).map(r=>r.name));const constrained=h.floors.flatMap(f=>f.rooms.filter(r=>orient(roomAnchor(r),f)===direction)).some(r=>['bedroom','kitchen','bath','hall'].includes(r.type));return {goal,direction,star:YEAR_STARS[n],rooms,action:constrained&&['work','study'].includes(goal)?'这一方落在休息区、厨卫或通道，保留原用途。工作资料与书桌留在现有办公区；此处只整理小件，不为年星增加工位。':action};})};}
+export function yearAdvice(h,goals){const year=Number(h.assessmentYear)||new Date().getFullYear(),stars=annualStars(year);if(!stars)return {year,rows:[]};const picks={wealth:[9,'九紫取名望与呈现之意，先整理这处的展示与接待位置，从已有物品中选暖色小件；没有合适物品就保持整洁。'],work:[6,'六白取秩序与责任之意。用已有收纳集中正在办理的资料，桌面只留当前事项。'],study:[4,'四绿取文昌之意。把常读书籍和固定台灯放在这里；有现成笔筒可归拢文具，不必另买。'],family:[9,'九紫取喜庆与相聚之意。保留共同坐下的位置，整理已有织物和照明，不必另购陈设。'],rest:[2,'二黑在传统中与照料、静养相关。这一处先减少杂物和夜间强光，不为年星添水景或搬床。'],balance:[1,'一白取交流之意。保持中心通行，装饰放边柜上，不在中间堆放摆件。']};return {year,rows:goals.filter(goal=>picks[goal]).map(goal=>{const [n,action]=picks[goal],direction=Object.keys(stars).find(d=>stars[d]===n),rooms=h.floors.flatMap(f=>f.rooms.filter(r=>orient(roomAnchor(r),f)===direction).map(r=>r.name));const constrained=h.floors.flatMap(f=>f.rooms.filter(r=>orient(roomAnchor(r),f)===direction)).some(r=>['bedroom','kitchen','bath','hall'].includes(r.type));return {goal,direction,star:YEAR_STARS[n],rooms,action:constrained&&['work','study'].includes(goal)?'这一方落在休息区、厨卫或通道，保留原用途。工作资料与书桌留在现有办公区；此处只整理小件，不为年星增加工位。':action};})};}

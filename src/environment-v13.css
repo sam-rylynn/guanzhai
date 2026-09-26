@@ -1,0 +1,14 @@
+/* Keep closed dialogs closed; only the current survey body scrolls. */
+#modal.environment-modal[open]{display:flex;flex-direction:column;max-height:calc(100dvh - 24px);overflow:hidden}
+#modal.environment-modal .environment-editor{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#modal.environment-modal .dialog-head,#modal.environment-modal .dialog-actions{flex-shrink:0}
+.environment-editor input:not([type=checkbox]),.environment-editor select{font-size:16px;min-height:44px}
+.environment-editor .environment-feedback:not([hidden]),.environment-review-note{padding:10px 12px;border:1px solid #c9a85c88;color:var(--gold-light);background:#c9a85c0e;border-radius:5px;line-height:1.7}
+.environment-diagrams{display:grid;gap:14px;margin-top:12px}
+.environment-diagrams figure{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;align-items:center;margin:0;padding:10px;border:1px solid var(--line);border-radius:5px}
+.environment-diagrams svg{display:block;width:100%;color:var(--muted)}
+.environment-diagrams figcaption{display:grid;gap:5px;font-size:12px;line-height:1.7}
+.environment-diagrams figcaption b{color:var(--gold-light);font-weight:500}
+.environment-diagrams figcaption span{color:var(--muted)}
+.environment-editor .environment-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.environment-editor .environment-tabs button{min-height:40px;padding:6px 10px}

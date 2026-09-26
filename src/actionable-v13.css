@@ -1,0 +1,24 @@
+/* Local decisions inherit the established night-sky palette. */
+.room-occupant{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.7fr;align-items:center;gap:12px;color:var(--muted,#aaa)}
+.room-occupant select{width:100%;min-width:0}
+.action-policy>ol{padding:0;list-style:none}
+.action-policy li{display:grid;gap:6px;padding:12px 0;border-bottom:1px solid #c9a85c22}
+.action-policy .procurement-row{margin:16px 0;padding:16px;background:#0e122050;border:1px solid #c9a85c33;border-radius:12px}
+.procurement-row label.field{min-width:0}
+.procurement-row input:not([type=checkbox]){width:100%;min-width:0;font-size:16px}
+.procurement-row [role=status]{color:#dfc780;font-size:14px}
+.action-policy .small-note,.personal-fit-reading .source-note{line-height:1.6;color:#adb3bf}
+.action-policy summary,.personal-fit-reading summary{cursor:pointer;min-height:44px;padding:12px 0;color:#dfc780}
+.personal-fit-reading details{margin-top:12px}
+.personal-fit-reading .reading-list{padding-left:20px}
+.local-layout-entry .compact-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.local-snapshot .before-after>div{min-width:0}
+@media(max-width:600px){
+ .action-policy .form-grid{grid-template-columns:1fr}
+ .room-occupant{gap:8px;font-size:12px}
+ .action-policy .procurement-row{padding:12px}
+ .personal-fit-reading h2,.local-layout-entry h2{font-size:21px}
+ .personal-fit-reading li{overflow-wrap:anywhere}
+ .local-layout-entry .btn{width:100%}
+}
+@media print{.action-policy input,.action-policy button,.local-layout-entry{display:none}}

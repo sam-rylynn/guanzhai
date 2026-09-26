@@ -1,11 +1,11 @@
-import {analyse} from './core.js?v=716b99049af8';
-import {polygonArea,insideRoom,roomAnchor} from './geometry.js?v=716b99049af8';
-import {enrichItem} from './consultation.js?v=716b99049af8';
-import {readingItem} from './report-copy.js?v=716b99049af8';
-import {missingInputs,annotationCoverage,GUA} from './report-data.js?v=716b99049af8';
-import {PALACES,palaceReview,centerReview} from './direction-reading.js?v=716b99049af8';
-import {externalFindings,boundaryNotches,roleNote,DIRECTIONS} from './residence.js?v=716b99049af8';
-import {orient} from './deep.js?v=716b99049af8';
+import {analyse} from './core.js?v=124593df2a03';
+import {polygonArea,insideRoom,roomAnchor} from './geometry.js?v=124593df2a03';
+import {enrichItem} from './consultation.js?v=124593df2a03';
+import {readingItem} from './report-copy.js?v=124593df2a03';
+import {missingInputs,annotationCoverage,GUA} from './report-data.js?v=124593df2a03';
+import {PALACES,palaceReview,centerReview} from './direction-reading.js?v=124593df2a03';
+import {externalFindings,boundaryNotches,roleNote,DIRECTIONS} from './residence.js?v=124593df2a03';
+import {orient} from './deep.js?v=124593df2a03';
 
 const rules=[
  {match:'工作与生活',tags:['work','study'],action:'在现有可用区域保留固定桌面，用可移动矮柜或地毯划出办公边界；先清理桌旁通道。',impact:'日常工作与休息缺少明确切换位置，可能增加干扰；需要结合实际居住习惯核实。'},
@@ -31,7 +31,7 @@ export function assessmentSummary(h,b=null,{items}={}){
  const findings=[];
  const add=(sectionKey,kind,id,title,text,extra={})=>findings.push({id,section:sectionKey,kind,title,text,...extra});
  if(!external.length)add('external','unknown','external-missing','宅外资料待补充','先在免费地图查找楼栋，再到主要窗边核实遮挡、道路、噪声与视线。',{step:3});
- for(const x of external)add('external',x.kind,x.id,x.title,x.text+(x.kind==='attention'?' '+x.action:''),{direction:x.direction,role:x.role,source:x.source,url:x.url,action:x.action,step:x.kind==='unknown'?3:undefined});
+ for(const x of external)add('external',x.kind,x.id,x.title,x.text+(x.kind==='attention'?' '+x.action:''),{direction:x.direction,role:x.role,source:x.source,url:x.url,action:x.action,floorId:x.floorId,roomId:x.roomId,markerId:x.markerId,associationStatus:x.associationStatus,reviewReason:x.reviewReason,originalLocation:x.originalLocation,observedAt:x.observedAt,distance:x.distance,layer:x.layer,step:x.kind==='unknown'?3:undefined});
  const notches=h.floors.map(f=>({f,data:boundaryNotches(f)}));
  for(const {f,data} of notches){
   if(data.status==='missing')add('corners','unknown',`corner-${f.id}-missing`,f.name+' · 边界或方位未确认','补齐封闭红线与八方位后，再判断内凹位置。',{floorId:f.id,step:5});

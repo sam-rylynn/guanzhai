@@ -1,10 +1,11 @@
-import {assessmentSummary} from './assessment.js?v=716b99049af8';
-import {GOALS} from './core.js?v=716b99049af8';
-import {favorableReference,paletteGroups} from './favorable.js?v=716b99049af8';
-import {directionItems,yearAdvice} from './report-data.js?v=716b99049af8';
-import {readingItem} from './report-copy.js?v=716b99049af8';
-import {roleOf,roleNote,sleepingDirection,boundaryNotches} from './residence.js?v=716b99049af8';
-import {reportIssues,reportOverview,renovationSummary} from './report-overview.js?v=716b99049af8';
+import {renderPersonalFit} from './personal-fit.js?v=124593df2a03';
+import {assessmentSummary} from './assessment.js?v=124593df2a03';
+import {GOALS} from './core.js?v=124593df2a03';
+import {favorableReference,paletteGroups} from './favorable.js?v=124593df2a03';
+import {directionItems,yearAdvice} from './report-data.js?v=124593df2a03';
+import {readingItem} from './report-copy.js?v=124593df2a03';
+import {roleOf,roleNote,sleepingDirection,boundaryNotches} from './residence.js?v=124593df2a03';
+import {reportIssues,reportOverview,renovationSummary} from './report-overview.js?v=124593df2a03';
 
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fix=(row,label='去修改 →')=>`<button class="text-link" data-fix-step="${row.step}" data-fix-floor="${e(row.floorId||'')}" data-fix-room="${e(row.roomId||'')}">${e(label)}</button>`;
@@ -38,6 +39,7 @@ export function renderReport(h,b,items,selected=[],saved){
  const {external,notches}=assessment,role=roleOf(h),[ext,corner,,space]=assessment.sections;
  return `<div class="rv12-report"><section class="rv12-overview" aria-label="住宅结论"><p class="rv12-conclusion">${e(overview.conclusion)}</p><p class="rv12-scope">${e(overview.scope)}</p>${overview.highlights.length?`<ol class="rv12-highlights">${overview.highlights.map(x=>`<li><div><small>${x.kind==='attention'?'先留意':'建议保持'} · ${e(x.number)}</small><h3>${e(x.title)}</h3>${x.section==='internal'?`<p class="rv12-highlight-text">${e(x.text.split('。')[0])}。</p>`:''}</div>${issueButton(x,x.floorId||x.roomId||x.direction?'查看位置':'查看详情')}</li>`).join('')}</ol>`:''}<div class="report-profile rv12-profile"><span>${e(renovationSummary(h))}${h.buildingFloor?` · ${e(h.buildingFloor)} 楼`:''}</span>${role.direction?`<span>${e(role.name)} · ${e(role.direction+role.gua)}方</span>`:''}<button class="text-link" data-action="focus-improvement">选择改善方向 ↓</button></div></section>
  ${improvementPicker(h,selected,saved)}
+ ${renderPersonalFit(h,b)}
  <details class="report-reference input-review rv12-inputs" id="report-inputs"><summary>${overview.missing.length?`待补资料 · ${overview.missing.length} 项`:'已填资料 · 查看核对情况'}<span>不影响已知部分的基础结论</span></summary>${overview.missing.length?`<ol class="missing-links">${overview.missing.map(x=>`<li><div><b>${e(x.title)}</b><p>${e(x.action)}</p></div>${fix(x)}</li>`).join('')}</ol>`:'<p>已填资料已核对；结论限于已标范围。</p>'}</details>
  ${section('01','外部风水',ext,issues,'<button class="text-link" data-action="report-environment">按门窗逐面补录 →</button>'+`<small class="source-note">${external.length?'来源：'+e([...new Set(external.map(x=>x.source))].join('、')):'地图地点需要现场核对；未自动导入地图数据。'}</small>`)}
  ${section('02','缺角',corner,issues,notches.some(x=>x.data.items.length)?fix({step:5}):'')}

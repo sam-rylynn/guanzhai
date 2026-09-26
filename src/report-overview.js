@@ -1,4 +1,4 @@
-import {assessmentSummary} from './assessment.js?v=716b99049af8';
+import {assessmentSummary} from './assessment.js?v=124593df2a03';
 
 const PREFIX={external:'外',corners:'角',internal:'内',space:'空'};
 const DEFAULT_STEP={external:3,corners:5,internal:9,space:8};
@@ -15,7 +15,7 @@ export function reportIssues(h,b=null,assessment=assessmentSummary(h,b)){
   key:`${row.section}:${row.id}`,
   number:numbers.get(`${row.section}:${row.id}`),
   sourceId:row.id,section:row.section,title:row.title,text:row.text,kind:row.kind,
-  floorId:row.floorId,roomId:row.roomId,direction:row.direction,
+  floorId:row.floorId,roomId:row.roomId,markerId:row.markerId,direction:row.direction,
   step:Number.isInteger(row.step)?row.step:DEFAULT_STEP[row.section],
   action:row.action,source:row.source,caseKey:row.caseKey
  }));

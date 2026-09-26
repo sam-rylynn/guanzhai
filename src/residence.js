@@ -1,6 +1,6 @@
-import {direction} from './core.js?v=716b99049af8';
-import {insideRoom,polygonBounds,validPolygon} from './geometry.js?v=716b99049af8';
-import {favorableReference} from './favorable.js?v=716b99049af8';
+import {direction} from './core.js?v=124593df2a03';
+import {insideRoom,polygonBounds,validPolygon} from './geometry.js?v=124593df2a03';
+import {favorableReference} from './favorable.js?v=124593df2a03';
 
 export const DIRECTIONS=['北','东北','东','东南','南','西南','西','西北'];
 // Family positions follow 說卦; this is a cultural association, never a health forecast.
@@ -27,7 +27,25 @@ const formReading={
  closeWall:['传统形峦称前逼，重在开口前的距离与高低关系','重点核对实际遮光和对视；楼层不同，遮挡关系也不同','窗前撤去高物，把工作面移向自然光较好的位置，补均匀照明；保留可开启窗，无法改善时列为选房取舍项']
 };
 export function mapSearch(h){const q=[h.housingCity,h.district,h.community].filter(Boolean).join(' ');return 'https://uri.amap.com/search?'+new URLSearchParams({keyword:q,city:h.housingCity||'',view:'map',callnative:'0',src:'guanzhai'});}
-export function normalizeEnvironment(raw,address=''){
+export const environmentAddress=h=>[h.housingCity,h.district,h.community].filter(Boolean).join(' ');
+const openingTypes={window:'窗',door:'入户门',interiorDoor:'室内门'};
+const roomPoints=r=>r.points||[{x:r.x,y:r.y},{x:r.x+r.w,y:r.y},{x:r.x+r.w,y:r.y+r.h},{x:r.x,y:r.y+r.h}];
+function distanceToSegment(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1)));return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);}
+// This tolerance links nearby drawing symbols only; it is not a physical distance.
+export function environmentOpenings(h,floorId,roomId){const f=h.floors.find(x=>x.id===floorId),r=f?.rooms.find(x=>x.id===roomId);if(!r)return [];const ps=roomPoints(r);return (f.markers||[]).filter(m=>openingTypes[m.type]&&Number.isFinite(m.x)&&Number.isFinite(m.y)&&(insideRoom(m,r)||ps.some((p,i)=>distanceToSegment(m,p,ps[(i+1)%ps.length])<=.035))).map(m=>({id:m.id,type:m.type,x:m.x,y:m.y,label:`${openingTypes[m.type]} · ${direction(m.x,m.y,f.north,f.bounds,f.width/f.height)}侧`}));}
+export function bindEnvironmentLocation(h,row){const f=h.floors.find(x=>x.id===row.floorId),r=f?.rooms.find(x=>x.id===row.roomId),m=row.markerId?environmentOpenings(h,row.floorId,row.roomId).find(x=>x.id===row.markerId):null;if(row.markerId&&!m)throw Error('所选门窗不属于这个功能区，请重新选择。');return {...row,associationVersion:1,associationStatus:r?'linked':'pending',needsReview:false,address:environmentAddress(h),locationSnapshot:r?{floorName:f.name,roomName:r.name,markerType:m?.type||'',markerX:m?.x??null,markerY:m?.y??null}:null};}
+export function environmentAssociation(h,row){
+ const originalLocation={floorId:row.floorId||'',roomId:row.roomId||'',markerId:row.markerId||'',...row.locationSnapshot},stale=reason=>({status:'stale',reason,originalLocation});
+ if(h.environment?.status==='stale'||row.address&&row.address!==environmentAddress(h))return stale('地址或观察条件已变更，请回到原位置重新核对。');
+ if(!row.floorId&&!row.roomId&&!row.markerId)return {status:row.associationVersion?'pending':'legacy',reason:'这条观察尚未关联功能区，不能套用于全屋。',originalLocation};
+ const f=h.floors.find(x=>x.id===row.floorId),r=f?.rooms.find(x=>x.id===row.roomId);if(!f||!r)return stale('原楼层或功能区已删除，请重新关联观察位置。');
+ const s=row.locationSnapshot;if(!s)return stale('这条旧记录的功能区关联尚未核对，请确认原观察位置。');if(s.roomName!==r.name||s.floorName!==f.name)return stale('原功能区或楼层名称已修改，请核对是否仍为同一观察位置。');
+ const m=row.markerId?environmentOpenings(h,f.id,r.id).find(x=>x.id===row.markerId):null;
+ if(row.markerId&&(!m||!Number.isFinite(s.markerX)||!Number.isFinite(s.markerY)||s.markerType!==m.type||Math.abs(s.markerX-m.x)>1e-6||Math.abs(s.markerY-m.y)>1e-6))return stale('原门窗已删除、移动或不再邻近此功能区，请重新核对。');
+ if(row.needsReview)return stale('观察位置或条件已变更，请回到原位置重新核对。');
+ return {status:'linked',reason:'',floorId:f.id,roomId:r.id,markerId:m?.id||'',floorName:f.name,roomName:r.name,openingLabel:m?.label||'',originalLocation};
+}
+export function normalizeEnvironment(raw,address='',house=null){
  const items=(raw.items||[]).filter(x=>String(x.name||'').trim()).slice(0,24).map(x=>{
   if(!DIRECTIONS.includes(x.direction)||!EXTERNAL_TYPES[x.kind]||!EXTERNAL_EFFECTS[x.effect])throw Error('请为每条周边记录选择方位、类型与观察情况。');
   if(x.distance!==''&&x.distance!=null&&(!Number.isFinite(Number(x.distance))||Number(x.distance)<0||Number(x.distance)>100000))throw Error('距离请填写 0–100000 米，或留空。');
@@ -36,24 +54,27 @@ export function normalizeEnvironment(raw,address=''){
   const form=EXTERNAL_FORMS[x.form]?x.form:'unknown',method=['onsite','map'].includes(x.method)?x.method:(x.effect!=='unknown'?'onsite':'map');
   if(method==='map'&&x.effect!=='unknown')throw Error('只有地图资料时，请把实际观察设为尚未核实。');
   if(x.formConfirmed&&form!=='unknown'&&(method!=='onsite'||!String(x.position||'').trim()))throw Error('确认宅外形势需要填写现场观察位置。');
-  return {form,method,formConfirmed:!!x.formConfirmed&&method==='onsite',observedAt:String(x.observedAt||'').slice(0,40),floorId:String(x.floorId||'').slice(0,100),roomId:String(x.roomId||'').slice(0,100),name:String(x.name).trim().slice(0,80),direction:x.direction,kind:x.kind,effect:x.effect,distance:x.distance===''||x.distance==null?null:Number(x.distance),source:String(x.source||(method==='onsite'?'本人门窗处观察':'免费地图查找')).slice(0,80),url,position:String(x.position||'').trim().slice(0,100),note:String(x.note||'').slice(0,240)};
+  const item={id:String(x.id||globalThis.crypto.randomUUID()).slice(0,100),form,method,formConfirmed:!!x.formConfirmed&&method==='onsite',observedAt:String(x.observedAt||'').slice(0,40),floorId:String(x.floorId||'').slice(0,100),roomId:String(x.roomId||'').slice(0,100),markerId:String(x.markerId||'').slice(0,100),name:String(x.name).trim().slice(0,80),direction:x.direction,kind:x.kind,effect:x.effect,distance:x.distance===''||x.distance==null?null:Number(x.distance),layer:String(x.layer||'').slice(0,80),source:String(x.source||(method==='onsite'?'本人门窗处观察':'免费地图查找')).slice(0,80),url,position:String(x.position||'').trim().slice(0,100),note:String(x.note||'').slice(0,240)};
+  if(x.associationVersion){item.associationVersion=1;item.associationStatus=x.associationStatus==='linked'?'linked':'pending';item.address=String(x.address||'').slice(0,240);item.needsReview=!!x.needsReview;const s=x.locationSnapshot;item.locationSnapshot=s?{floorName:String(s.floorName||'').slice(0,100),roomName:String(s.roomName||'').slice(0,100),markerType:openingTypes[s.markerType]?s.markerType:'',markerX:Number.isFinite(s.markerX)?s.markerX:null,markerY:Number.isFinite(s.markerY)?s.markerY:null}:null;}
+  if(house&&item.associationVersion&&environmentAssociation({...house,environment:{...house.environment,status:'recorded'}},item).status==='stale')item.needsReview=true;
+  return item;
  });
  return {status:items.length?'recorded':'missing',provider:'用户查找与观察',address,items,updatedAt:new Date().toISOString()};
 }
-const externalMethods={
- shade:'保持窗前无遮挡，移开高柜；工作位移向可用自然光处，补一盏定向台灯。外部楼栋不能由室内改造移除。',
- noise:'把床或长期座位安排到远离噪声的一侧，先检查窗扇是否关严。小改只调整家具与织物；更换隔音窗须另核实改造权限。',
- glare:'先调整桌面或座位角度避开反光，配可调纱帘；卧室另配遮光帘，保留可开启窗。',
- privacy:'主要窗加透光纱帘，把床和常坐位置移出正对视线；不要用高柜封住采光和通风。'
-};
+const externalMethods={shade:'移开窗前高物，把常用位置移向本区已有自然光较好的位置；先调整现有灯具。',noise:'先检查窗扇是否关严，把床或长期座位移到本区远离噪声的一侧，试用已有帘布；保留必要通风。',glare:'调整桌面或座位角度避开反光，先调节已有帘布；保留可开启窗。',privacy:'把床和常坐位置移出正对视线，试用已有织物遮挡；不要用高柜封住采光和通风。'};
 export function externalFindings(h){const rows=h.environment?.items||[];return rows.map((x,i)=>{
- const d=x.direction||(Number.isFinite(x.bearing)?DIRECTIONS[Math.round(x.bearing/45)%8]:'方位待核实'),current=h.environment?.status!=='stale',verified=current&&x.method!=='map'&&!!x.position&&x.effect&&x.effect!=='unknown',form=current&&x.method==='onsite'&&x.formConfirmed&&x.position?formReading[x.form]:null;
+ const association=environmentAssociation(h,x),d=x.direction||(Number.isFinite(x.bearing)?DIRECTIONS[Math.round(x.bearing/45)%8]:'方位待核实'),current=association.status==='linked',verified=current&&x.method!=='map'&&!!x.position&&x.effect&&x.effect!=='unknown',form=current&&x.method==='onsite'&&x.formConfirmed&&x.position?formReading[x.form]:null;
  const attention=verified&&x.effect!=='clear'||form&&x.form!=='open',kind=attention?'attention':verified&&x.effect==='clear'?'good':'unknown';
- const observation=verified?x.effect==='clear'?`${x.position}观察未见明显干扰。`:`${x.position}已记录${EXTERNAL_EFFECTS[x.effect]?.split('：')[1]||'需核对的情况'}。`:`${current?'目前只有地点或形势线索':'住宅地址已变更，原观察需重新确认'}，先到对应门窗核实遮挡、噪声、视线与风。`;
- const text=observation+(form?` ${form[0]}；${form[1]}。`:'');
- const base=verified&&x.effect!=='clear'?externalMethods[x.effect]:form?form[2]+'。':'保持开口前的通行与视野，不为未核实的线索搬动家具。';
- const action=kind==='unknown'?'站在实际使用的门窗处确认楼栋与方向，补上观察位置和时间；地图上有道路或水面，不代表它正在影响住宅。':base+(form&&verified&&x.effect!=='clear'?' '+form[2]+'。':'')+(attention?' 外部道路、河道与邻楼不属于本宅可改范围；先处理屋内开口、视线和常用位置。':'');
- return {id:`external-${i}`,direction:d,title:`${d} · ${x.name}${form?' · '+EXTERNAL_FORMS[x.form]:''}`,kind,text,action,source:x.source||h.environment?.provider||'来源待核实',url:x.url,role:roleNote(h,d),form:x.form||'unknown',observedAt:x.observedAt||''};
+ const place=association.status==='linked'?`${association.floorName} · ${association.roomName}（${x.position}）`:x.position;
+ const observation=verified?`${x.observedAt?`在${x.observedAt}，`:''}${place}${x.effect==='clear'?'观察未见明显干扰':`已记录${EXTERNAL_EFFECTS[x.effect]?.split('：')[1]||'需核对的情况'}`}。`:`${association.status!=='linked'?association.reason:'目前只有地点或形势线索，先到对应门窗核实遮挡、噪声、视线与风。'}`;
+ const reference=[x.distance!=null&&x.distance!==''?`所填距离 ${x.distance} 米`:null,x.layer?`现场楼层参照：${x.layer}`:null].filter(Boolean).join('；');
+ const text=observation+(verified?x.observedAt?'该记录只反映这个观察时段，不代表全天情况。':'未记录观察时段，不推定全天情况。':'')+(reference?`${reference}，仅作现场参照，不据此推定影响强度。`:'')+(form?` ${form[0]}；${form[1]}。`:'')+(association.status==='legacy'?` 原位置“${x.position||'未填写'}”的历史记录与来源已保留，关联前不认定影响范围。`:'');
+ const scope=association.status==='linked'?`屋内调整仅在${association.floorName}的${association.roomName}内处理：`:'先关联这条历史观察对应的功能区，核对后仅在该区屋内处理：';
+ const configured=h.planSettingsConfirmed!==false,budgetKnown=configured&&h.budget!==''&&h.budget!=null&&Number.isFinite(Number(h.budget)),zero=budgetKnown&&Number(h.budget)===0;
+ const limits=(zero?'0 元预算：先整理、移位和试用已有织物，不新增采购。':!budgetKnown?'预算待确认，先用已有家具与织物试摆。':'')+(configured&&h.tier==='large'&&!zero&&budgetKnown?'如需更换门窗，另核实结构、物业权限与报价；未核实前不拆改。':'本次先不改墙体和门窗，仅调整家具、现有照明与织物。');
+ const base=verified&&x.effect!=='clear'?externalMethods[x.effect]:form?'先核实实际干扰；保留原开口和通道，不仅凭形势名称添购物件。':'保持该开口前通行与视野。';
+ const action=kind==='unknown'?`${association.reason||'先到这扇门窗现场核实。'}补上功能区关联、观察位置和时间；保留原来源，核实前不安排房间内改动。地图上有道路或水面，不代表它正在影响住宅。`:scope+base+limits+(attention?' 外部道路、河道与邻楼不属于本宅可改范围；不建议改动公共空间。':'');
+ return {id:`external-${x.id||i}`,direction:d,title:`${association.status==='linked'?association.roomName+' · ':''}${d} · ${x.name}${form?' · '+EXTERNAL_FORMS[x.form]:''}`,kind,text,action,source:x.source||h.environment?.provider||'来源待核实',url:x.url,role:roleNote(h,d),form:x.form||'unknown',observedAt:x.observedAt||'',distance:x.distance??null,layer:x.layer||'',floorId:association.floorId,roomId:association.roomId,markerId:association.markerId,associationStatus:association.status,reviewReason:association.reason,originalLocation:association.originalLocation};
  });}
 
 // Concavity is compared with the convex hull, so a diagonal/rotated convex home

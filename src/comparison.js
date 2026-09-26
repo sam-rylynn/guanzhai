@@ -1,4 +1,4 @@
-import {GOALS,TIERS} from './core.js?v=716b99049af8';
+import {GOALS,TIERS} from './core.js?v=124593df2a03';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const describe=section=>[['保持',section.good],['调整',section.bad],['待核实',section.unknown],['现状',section.facts]].filter(([,rows])=>rows.length).map(([label,rows])=>label+'：'+rows.map(x=>x.title+' — '+x.text).join('；')).join('\n')||'已标范围内暂无可判断项目';
 export function renderComparison(selected,summaries){

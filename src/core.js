@@ -1,9 +1,10 @@
-import {conceptLayout} from './concept-layout.js?v=716b99049af8';
-import {stageError,northValid} from './intake-validation.js?v=716b99049af8';
-import {requiredStages} from './journey.js?v=716b99049af8';
-import {solveLayout,scaleOf} from './layout.js?v=716b99049af8';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=716b99049af8';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=716b99049af8';
+import {planPolicy} from './action-policy.js?v=124593df2a03';
+import {conceptLayout} from './concept-layout.js?v=124593df2a03';
+import {stageError,northValid} from './intake-validation.js?v=124593df2a03';
+import {requiredStages} from './journey.js?v=124593df2a03';
+import {solveLayout,scaleOf} from './layout.js?v=124593df2a03';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=124593df2a03';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=124593df2a03';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
@@ -104,9 +105,10 @@ export function makePlan(h,tier=h.tier,birth=null) {
   moves.push(...concept.moves);actions.push(...concept.actions);
   if(precise){moves.splice(0,moves.length,...geometry.moves);partitions.length=0;for(let i=actions.length-1;i>=0;i--)if(actions[i].kind==='move')actions.splice(i,1);for(const result of geometry.floors){actions.unshift({title:result.status==='checked'?`尺寸检验 · ${result.target}候选位置`:result.status==='missing'?'尺寸布局 · 资料待补齐':'尺寸布局 · 本轮未找到候选',where:h.floors.find(f=>f.id===result.floorId)?.name,text:result.status==='checked'?`移动 ${result.position.distance} 米；中心距图像左边 ${result.position.x} 米、上边 ${result.position.y} 米。四周留距 ${result.clearance} 米，已通过房间轮廓包含与已标物件碰撞检查。`:(result.missing||[]).join('；'),source:'实测标定 × 矩形外形 × 10 厘米搜索网格',kind:'geometry'});}}
   const style=palette(birth?.dayMaster?.element);
-  actions.push({title:primary==='wealth'?'先盘点已有物品，再安排软装预算':'用一组软装建立空间的一致性',where:'可调整区域',text:`可以从已有的${style.material}中整理一组，选择${style.names}作局部点缀；保留你喜欢的物品，先试摆再决定是否添置。预算上限为 ${h.budget||'待定'} 元，不代表实际报价。`,source:birth?`日主·${birth.dayMaster.stem}${birth.dayMaster.element}的文化意象配色，不等同喜用神`:'用户目标 · 软装偏好',kind:'decor'});
+  const policy=planPolicy({...h,tier},{goals:h.goals});
+  actions.push(...policy.included.map(x=>({title:x.title,where:'已核对报价',text:x.action+' · '+x.quote+' 元 · '+x.source,source:'用户选择与报价',kind:'purchase'})));
   if(h.keep?.trim())actions.push({title:'执行前核对你的保留清单',where:'整个住宅',text:h.keep,source:'用户保留条件 · 自由文字需逐项核对',kind:'constraint'});
-  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,walls:TIERS[tier].walls,openings:TIERS[tier].openings,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',layoutMode:precise?'metric':'concept',geometry,actions,moves,zoneChanges:precise?[]:concept.zoneChanges,blocked:concept.blocked,partitions,style,floors:structuredClone(h.floors),note:precise?geometry.scope:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
+  return {id:uid(),houseId:h.id,houseName:h.name,tier,tierLabel:TIERS[tier].name,finish:h.finish,constraints:{hard:TIERS[tier].hard,walls:TIERS[tier].walls,openings:TIERS[tier].openings,zones:TIERS[tier].zones},goals:[...h.goals],revision:h.revision,createdAt:new Date().toISOString(),status:'draft',policy,layoutMode:precise?'metric':'concept',geometry,actions,moves,zoneChanges:precise?[]:concept.zoneChanges,blocked:concept.blocked,partitions,style,styleBasis:birth?'日主文化意象，不等同喜用神':'中性配色',floors:structuredClone(h.floors),note:precise?geometry.scope:'位置与分区均为概念推演；未进行墙体、尺寸或施工可行性验收。',facts:report.rooms};
 }
 export function metrics(h){
   const f=analyse(h).findings;
