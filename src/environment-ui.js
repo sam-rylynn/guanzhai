@@ -1,4 +1,4 @@
-import {DIRECTIONS,EXTERNAL_TYPES,EXTERNAL_EFFECTS,EXTERNAL_FORMS,mapSearch,normalizeEnvironment} from './residence.js?v=b1cae4b4be94';
+import {DIRECTIONS,EXTERNAL_TYPES,EXTERNAL_EFFECTS,EXTERNAL_FORMS,mapSearch,normalizeEnvironment} from './residence.js?v=a51e404773f7';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const opts=(map,val)=>Object.entries(map).map(([k,v])=>`<option value="${k}" ${k===val?'selected':''}>${e(v)}</option>`).join('');
 export function editEnvironment(h,{modal,save,toast,initialDirection}){

@@ -1,5 +1,5 @@
-import {TIERS,ROOMS} from './core.js?v=b1cae4b4be94';
-import {polygonArea,insideRoom} from './geometry.js?v=b1cae4b4be94';
+import {TIERS,ROOMS} from './core.js?v=a51e404773f7';
+import {polygonArea,insideRoom} from './geometry.js?v=a51e404773f7';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const CONSULTATION_VERSION='2026-09-11.1';
 const GUIDES={

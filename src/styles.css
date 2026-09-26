@@ -41,3 +41,11 @@
 .drawing-viewport:has([data-tool="boundary"]) .drawing-zoom,.drawing-viewport:has([data-tool="polygon"]) .drawing-zoom{display:none}
 @media(max-width:700px){.mobile-home{height:calc(100svh - 170px);min-height:390px}.intake-panel:has(.inline-room)>.compact-tools,.intake-panel:has(.inline-room)>.hint,.intake-panel:has(.inline-room)>.saved-objects{display:none}.intake-panel:has(.inline-room) .intake-drawing{max-width:min(100%,calc((100svh - 350px) * 1.29))}}
 @media(max-width:700px){.intake-panel:has(#symbol-scale)>.hint,.intake-panel:has(#symbol-scale)>.saved-objects,.intake-panel:has(#symbol-scale)>[data-action="recognize-furniture"]{display:none}.intake-panel:has(#symbol-scale) .intake-drawing{max-width:min(100%,calc((100svh - 335px) * 1.29))}}
+
+/* Local recovery stays separate from the last confirmed report. */
+.draft-recovery{margin:1.5rem 0 2rem}.draft-recovery h2{font-size:1.2rem}
+.draft-recovery article{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:16px;border:1px solid #c9a85c55;border-radius:10px;margin:12px 0;background:#1a2233}
+.draft-recovery article>div{flex:1;min-width:170px}.draft-recovery p{margin:6px 0 0;font-size:14px;color:#bbbeb7}
+.storage-warning{max-width:800px;margin:16px auto;padding:18px;background:#1a2233;border:1px solid #c9a85c;border-radius:8px}.storage-warning p{margin-top:0}
+[data-save-status]{font-size:13px;white-space:nowrap}[data-save-status][data-state="error"]{color:#ffc4aa}
+.home-resume{justify-self:center;text-align:center;padding:4px 8px;font-size:14px}.compare-table td{white-space:pre-line}

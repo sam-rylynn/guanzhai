@@ -1,8 +1,8 @@
-import {conceptLayout} from './concept-layout.js?v=b1cae4b4be94';
-import {stageError} from './intake-validation.js?v=b1cae4b4be94';
-import {solveLayout,scaleOf} from './layout.js?v=b1cae4b4be94';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=b1cae4b4be94';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=b1cae4b4be94';
+import {conceptLayout} from './concept-layout.js?v=a51e404773f7';
+import {stageError} from './intake-validation.js?v=a51e404773f7';
+import {solveLayout,scaleOf} from './layout.js?v=a51e404773f7';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=a51e404773f7';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=a51e404773f7';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));

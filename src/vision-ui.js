@@ -1,10 +1,10 @@
-import {service} from './integrations.js?v=b1cae4b4be94';
-import {VISION_VERSION,adoptVision} from './vision.js?v=b1cae4b4be94';
-import {ROOMS} from './core.js?v=b1cae4b4be94';
-import {CATALOG} from './catalog.js?v=b1cae4b4be94';
-import {roomAnchor} from './geometry.js?v=b1cae4b4be94';
-import {symbol} from './plan-symbols.js?v=b1cae4b4be94';
-import {bindViewport} from './drawing-tools.js?v=b1cae4b4be94';
+import {service} from './integrations.js?v=a51e404773f7';
+import {VISION_VERSION,adoptVision} from './vision.js?v=a51e404773f7';
+import {ROOMS} from './core.js?v=a51e404773f7';
+import {CATALOG} from './catalog.js?v=a51e404773f7';
+import {roomAnchor} from './geometry.js?v=a51e404773f7';
+import {symbol} from './plan-symbols.js?v=a51e404773f7';
+import {bindViewport} from './drawing-tools.js?v=a51e404773f7';
 const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function editVision(f,{modal:openModal,save,toast,local,accessRequired=false}){
  const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)];
