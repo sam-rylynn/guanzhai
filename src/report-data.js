@@ -1,9 +1,9 @@
-import {orient,annualStars,relation,lifeGua,eightMap} from './deep.js?v=a51e404773f7';
-import {roomAnchor} from './geometry.js?v=a51e404773f7';
-import {classifyMarker,CATALOG} from './catalog.js?v=a51e404773f7';
-import {favorableReference} from './favorable.js?v=a51e404773f7';
-import {externalFindings} from './residence.js?v=a51e404773f7';
-import {insideRoom,validPolygon} from './geometry.js?v=a51e404773f7';
+import {orient,annualStars,relation,lifeGua,eightMap} from './deep.js?v=716b99049af8';
+import {roomAnchor} from './geometry.js?v=716b99049af8';
+import {classifyMarker,CATALOG} from './catalog.js?v=716b99049af8';
+import {favorableReference} from './favorable.js?v=716b99049af8';
+import {externalFindings} from './residence.js?v=716b99049af8';
+import {insideRoom,validPolygon} from './geometry.js?v=716b99049af8';
 export const ELEMENT={北:'水',东北:'土',东:'木',东南:'木',南:'火',西南:'土',西:'金',西北:'金'},GUA={北:'坎',东北:'艮',东:'震',东南:'巽',南:'离',西南:'坤',西:'兑',西北:'乾'};
 export function annotationCoverage(h){
  const rooms=h.floors.flatMap(f=>f.rooms),count=v=>v!==''&&v!=null&&Number.isInteger(Number(v))&&Number(v)>=0?Number(v):null;

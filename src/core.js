@@ -1,8 +1,9 @@
-import {conceptLayout} from './concept-layout.js?v=a51e404773f7';
-import {stageError} from './intake-validation.js?v=a51e404773f7';
-import {solveLayout,scaleOf} from './layout.js?v=a51e404773f7';
-import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=a51e404773f7';
-import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=a51e404773f7';
+import {conceptLayout} from './concept-layout.js?v=716b99049af8';
+import {stageError,northValid} from './intake-validation.js?v=716b99049af8';
+import {requiredStages} from './journey.js?v=716b99049af8';
+import {solveLayout,scaleOf} from './layout.js?v=716b99049af8';
+import {CATALOG, classifyMarker, CATALOG_VERSION} from './catalog.js?v=716b99049af8';
+import {insideRoom, roomAnchor, validPolygon} from './geometry.js?v=716b99049af8';
 export const GOALS = {work:'事业与工作',wealth:'财务与积累',family:'关系与家庭',study:'学习与专注',rest:'休息与安定'};
 export const ROOMS = {living:'客厅',bedroom:'卧室',study:'书房',dining:'餐厅',kitchen:'厨房',bath:'卫生间',balcony:'阳台',hall:'玄关',stairs:'楼梯',yard:'庭院',other:'其他空间'};
 export const MARKERS = Object.fromEntries(Object.entries(CATALOG).map(([key,value])=>[key,value.name]));
@@ -41,13 +42,13 @@ export function validBirth(birth,today=new Date()) {
 }
 export function validate(h) {
   const e=[];
-  if(h.flowVersion===4)for(let s=1;s<=10;s++){const error=stageError(h,s);if(error)e.push(error);}
-  if(h.schemaVersion===2&&!['shell','furnished'].includes(h.finish))e.push('请选择毛坯或精装。');
+  if([4,5].includes(h.flowVersion))for(const s of requiredStages(h)){const error=stageError(h,s);if(error)e.push(error);}
+  if(h.schemaVersion===2&&h.flowVersion!==5&&!['shell','furnished'].includes(h.finish))e.push('请选择毛坯或精装。');
   if(!TIERS[h.tier])e.push('请选择可接受的方案状态。');
   if(!h.name.trim())e.push('请为这套住宅起一个名称。');
   if(!h.floors.length)e.push('请先上传户型图。');
   h.floors.forEach(f=>{
-    if(!f.directionConfirmed)e.push(`${f.name}：请标注并确认东南西北。`);
+    if(!f.directionConfirmed||!northValid(f.north))e.push(`${f.name}：请标注并确认东南西北。`);
     if(!f.confirmed)e.push(`${f.name}：请确认房屋范围与图面标注。`);
     for(const room of f.rooms)if(room.points&&!validPolygon(room.points))e.push(`${f.name}：房间轮廓无效，请重新勾线。`);
     if(!f.rooms.length)e.push(`${f.name}：请至少标注一个房间。`);

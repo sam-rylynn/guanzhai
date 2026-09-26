@@ -22,8 +22,8 @@ export function createDraftSaver({read,write,onState=()=>{},delay=300}){
  return {schedule,flush,reset};
 }
 
-export function captureDraft(h,{page='editor',step=0,floorIndex=0,selection=null,tool='select',sketch=[],reportEdit=null,drawingExpanded=null}={}){
- return {id:h.id,house:structuredClone(h),context:{page,step,floorId:h.floors[floorIndex]?.id||null,selection,tool,sketch:structuredClone(sketch),reportEdit:reportEdit?structuredClone(reportEdit):null,drawingExpanded},updatedAt:new Date().toISOString()};
+export function captureDraft(h,{page='editor',step=0,floorIndex=0,selection=null,tool='select',sketch=[],reportEdit=null,drawingExpanded=null,optionalReturn=null}={}){
+ return {id:h.id,house:structuredClone(h),context:{page,step,floorId:h.floors[floorIndex]?.id||null,selection,tool,sketch:structuredClone(sketch),reportEdit:reportEdit?structuredClone(reportEdit):null,drawingExpanded,optionalReturn},updatedAt:new Date().toISOString()};
 }
 
 export function restoreDraft(entry){

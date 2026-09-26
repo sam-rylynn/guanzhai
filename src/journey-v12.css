@@ -1,0 +1,60 @@
+/* A short intake has one scrollable content area and a stable next action. */
+.is-light-intake{height:100dvh;min-height:0;overflow:hidden}
+.is-light-intake #app{height:100%;min-height:0;display:flex;flex-direction:column}
+.is-light-intake .header,.is-light-intake .footer{flex-shrink:0}
+.is-light-intake #main{flex:1;min-height:0;display:flex;flex-direction:column}
+.light-intake{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;padding-bottom:8px;gap:8px}
+.light-intake .intake-heading,.light-intake .intake-progress,.light-intake .report-edit-caption,.light-intake .wizard-bottom{flex-shrink:0;margin:0}
+.light-intake .intake-panel{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.light-intake .intake-panel>*:not(.intake-drawing):not(.summary-viewport){flex-shrink:0}
+.light-intake .intake-progress span{padding-block:7px;font-size:12px}
+.light-intake .intake-purpose{color:#d9dccf;font-size:13px;line-height:1.6}
+.light-intake .wizard-bottom{padding-top:2px;min-height:50px}
+.light-intake .wizard-bottom .btn{min-height:46px}
+.light-intake .intake-panel .field>span{font-size:12px;color:#c1c8c1}
+.light-intake .intake-panel input:not([type=checkbox]),.light-intake .intake-panel select{min-height:44px;height:44px;font-size:16px}
+.light-intake .intake-panel .check{min-height:44px;line-height:1.5}
+.light-intake .upload-zone{padding:26px 12px}
+.light-intake .upload-zone h3{font-size:24px;margin-bottom:18px}
+.light-intake .upload-zone p{margin-top:12px}
+.owner-entry-light{padding-top:12px;border-top:1px solid var(--line)}
+.owner-entry-light small{display:block}
+.owner-entry-light .text-link{min-height:44px;font-size:14px}
+.owner-reuse,.intake-options{border-top:1px solid var(--line);padding-top:8px}
+.owner-reuse summary,.intake-options summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--gold-light);font-size:14px}
+.owner-reuse summary::after,.intake-options summary::after{content:'＋';margin-left:auto}
+.owner-reuse[open] summary::after,.intake-options[open] summary::after{content:'−'}
+.owner-reuse p{color:var(--muted);margin-bottom:8px!important}
+.owner-reuse .btn{width:100%;justify-content:flex-start;text-align:left;line-height:1.5;margin-top:6px}
+.intake-options>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-bottom:8px}
+.intake-options>div>button{min-width:0;min-height:44px;justify-content:flex-start;text-align:left;padding:10px;font-size:13px}
+.light-intake .finish-options button,.light-intake .eight-picker button{min-height:44px}
+.light-intake .compact-tiers button{padding:12px;gap:12px}
+.light-intake .compact-tiers button span{font-size:12px}
+.is-light-intake.is-drawing .light-intake{height:auto;min-height:0;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.is-light-intake.is-drawing .intake-heading>span{font-size:17px}
+.report-drawing{scroll-margin-top:20px}
+.report-location-caption{margin:12px 0;padding:12px;border-left:2px solid var(--gold);background:#c9a85c0a}
+.report-location-caption b{font-size:15px;color:var(--gold-light)}
+.report-location-caption p{font-size:13px;margin-top:6px;line-height:1.6;color:#bcc5c4}
+.report-location-caption .text-link{min-height:44px;font-size:13px}
+.report-issue-pin{position:absolute;transform:translate(-50%,-50%);z-index:25;display:grid;place-items:center;min-width:42px;height:42px;padding:0 5px;border-radius:50%;background:#c9a85c;color:#101722;border:2px solid #fff5d2;box-shadow:0 2px 8px #0009;font-weight:700;font-size:12px;pointer-events:none}
+.related-candidate{min-height:48px;margin:6px 0 16px;font-size:15px;text-align:left}
+@media(max-width:700px){
+ .is-light-intake .header{min-height:76px}
+ .is-light-intake .header-inner{padding-block:6px;gap:7px}
+ .is-light-intake .footer{padding:7px 14px}
+ .light-intake{padding:8px 12px;gap:7px}
+ .light-intake .intake-panel{padding:12px;gap:10px}
+ .light-intake .intake-heading>span{font-size:17px}
+ .light-intake .intake-heading .text-link{font-size:11px;min-height:36px}
+ .light-intake .wizard-bottom small{display:block;font-size:11px;white-space:nowrap}
+ .light-intake .wizard-bottom .btn{font-size:13px;padding:10px 12px}
+ .light-intake .upload-zone{padding:22px 10px}
+ .light-intake .upload-zone h3{font-size:22px;margin-bottom:14px}
+ .light-intake .compact-tools button{min-height:40px}
+ .is-light-intake.is-drawing .intake-panel{padding:8px;gap:8px}
+ .is-light-intake.is-drawing .intake-heading>span{font-size:16px}
+}
+@media(max-width:360px){.light-intake .intake-heading>span{font-size:15px}.light-intake .wizard-bottom .btn{padding-inline:10px;font-size:12px}}
+@media print{.related-candidate,.report-location-caption button{display:none}.report-issue-pin{print-color-adjust:exact;-webkit-print-color-adjust:exact}}

@@ -1,8 +1,8 @@
-import {renderReport} from './report-v07.js?v=a51e404773f7';
-import {favorableReference} from './favorable.js?v=a51e404773f7';
-import {GOALS,palette} from './core.js?v=a51e404773f7';
-import {improvementItems} from './assessment.js?v=a51e404773f7';
-export {improvementItems} from './assessment.js?v=a51e404773f7';
+import {renderReport} from './report-v07.js?v=716b99049af8';
+import {favorableReference} from './favorable.js?v=716b99049af8';
+import {GOALS,palette} from './core.js?v=716b99049af8';
+import {improvementItems} from './assessment.js?v=716b99049af8';
+export {improvementItems} from './assessment.js?v=716b99049af8';
 export function colorReference(h,b){const f=favorableReference(b);return {...f,label:f.method||f.status,basis:f.reason,style:palette(f.element)};}
 
 export function selectedGoals(goals){if(!Array.isArray(goals)||!goals.length||goals.length>3||goals.some(x=>!GOALS[x])||new Set(goals).size!==goals.length)throw Error('请选择 1–3 项不同的改善方向。');return [...goals];}

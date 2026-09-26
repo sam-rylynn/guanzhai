@@ -1,11 +1,11 @@
-import {analyse} from './core.js?v=a51e404773f7';
-import {polygonArea,insideRoom,roomAnchor} from './geometry.js?v=a51e404773f7';
-import {enrichItem} from './consultation.js?v=a51e404773f7';
-import {readingItem} from './report-copy.js?v=a51e404773f7';
-import {missingInputs,annotationCoverage,GUA} from './report-data.js?v=a51e404773f7';
-import {PALACES,palaceReview,centerReview} from './direction-reading.js?v=a51e404773f7';
-import {externalFindings,boundaryNotches,roleNote,DIRECTIONS} from './residence.js?v=a51e404773f7';
-import {orient} from './deep.js?v=a51e404773f7';
+import {analyse} from './core.js?v=716b99049af8';
+import {polygonArea,insideRoom,roomAnchor} from './geometry.js?v=716b99049af8';
+import {enrichItem} from './consultation.js?v=716b99049af8';
+import {readingItem} from './report-copy.js?v=716b99049af8';
+import {missingInputs,annotationCoverage,GUA} from './report-data.js?v=716b99049af8';
+import {PALACES,palaceReview,centerReview} from './direction-reading.js?v=716b99049af8';
+import {externalFindings,boundaryNotches,roleNote,DIRECTIONS} from './residence.js?v=716b99049af8';
+import {orient} from './deep.js?v=716b99049af8';
 
 const rules=[
  {match:'工作与生活',tags:['work','study'],action:'在现有可用区域保留固定桌面，用可移动矮柜或地毯划出办公边界；先清理桌旁通道。',impact:'日常工作与休息缺少明确切换位置，可能增加干扰；需要结合实际居住习惯核实。'},

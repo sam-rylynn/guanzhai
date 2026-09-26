@@ -1,8 +1,8 @@
-import {direction} from './core.js?v=a51e404773f7';
-import {DIRECTIONS,roleOf,boundaryNotches,externalFindings} from './residence.js?v=a51e404773f7';
-import {directionItems} from './report-data.js?v=a51e404773f7';
-import {insideRoom} from './geometry.js?v=a51e404773f7';
-import {CATALOG} from './catalog.js?v=a51e404773f7';
+import {direction} from './core.js?v=716b99049af8';
+import {DIRECTIONS,roleOf,boundaryNotches,externalFindings} from './residence.js?v=716b99049af8';
+import {directionItems} from './report-data.js?v=716b99049af8';
+import {insideRoom} from './geometry.js?v=716b99049af8';
+import {CATALOG} from './catalog.js?v=716b99049af8';
 export const PALACES={
  北:{gua:'坎',person:'中男',meaning:'坎取水、流动与劳作之象',care:'把常用物品归位，检查用水处是否干燥，休息区减少夜间干扰'},
  东北:{gua:'艮',person:'少男',meaning:'艮取山与止，有安定、收束之意',care:'给学习和休息保留固定位置，柜体靠实墙，转角不要堆满'},
